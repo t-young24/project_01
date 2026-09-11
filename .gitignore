@@ -1,0 +1,10 @@
+# OS / 편집기
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+
+# 임시 파일
+*.log
+*.tmp
+__pycache__/

@@ -11,6 +11,10 @@ const state = {
   parts: [],            // [{id:'thigh-l', part:'다리', lv:2}] — 도형(id) 단위로 저장, 표시는 part 이름으로 묶음
   pending: null,        // 강도 선택 대기 중인 도형 {id, part}
   zones: [],            // 선택한 체험존 key 목록 (다중)
+  phone: '',            // 3단계 입력한 휴대폰 번호 (숫자만)
+  visitType: null,      // 2단계: 'reserved' 예약 | 'walkin' 일반 방문
+  reservation: null,    // 예약 고객이면 조회된 예약 정보 {parts, ...}
+  purpose: null,        // 3-1단계(일반 방문): 'experience' | 'consult' | 'both'
   soundOn: true,
 };
 
@@ -66,10 +70,11 @@ function go(step, { push = true } = {}) {
   }
   state.step = step;
   document.getElementById('s' + step).classList.add('active');
+  const major = parseInt(step, 10);   // '3b' → 3, '6b' → 6 (부속 화면은 같은 번호 점을 켬)
   document.querySelectorAll('.step-dot').forEach(d => {
     const n = +d.dataset.step;
-    d.classList.toggle('active', n === step);
-    d.classList.toggle('done', n < step);
+    d.classList.toggle('active', n === major);
+    d.classList.toggle('done', n < major);
   });
   document.getElementById('btnBack').disabled = (step === 1);
   onEnter(step);
@@ -82,8 +87,10 @@ function goBack() {
 function goHome() {
   // 상태 초기화
   state.history = [];
-  state.parts = []; state.pending = null; state.zones = [];
-  ticketNo = null; resultCode = null;
+  state.parts = []; state.pending = null; state.zones = []; state.phone = '';
+  state.visitType = null; state.reservation = null; state.purpose = null;
+  document.getElementById('phoneAgree').checked = false;
+  ticketNo = null; resultCode = null; managerAssigned = false;
   renderSelected(); clearPending();
   document.querySelectorAll('.part').forEach(p => p.classList.remove('selected', 'pending', 'lv1', 'lv2', 'lv3'));
   go(1, { push: false });
@@ -95,14 +102,21 @@ function onEnter(step) {
   clearTimeout(autoTimer);
   clearInterval(guideTimer);
   clearTimeout(managerTimer);
+  clearTimeout(consultTimer);
   closeManagerModal();
+  closeNotReadyModal();
   closeQrModal();
   if (step === 1) startWelcome();
-  if (step === 2) speak('그림에서 아픈 부위를 눌러 주세요.');
-  if (step === 3) renderZones();
-  if (step === 4) renderManagerInfo();
-  if (step === 5) { renderLegend(); replayRemoteGuide(); }
-  if (step === 6) loadMeasurements();
+  if (step === 2) startVisitStep();
+  if (step === 3) startPhoneStep();
+  if (step === '3b') startPurposeStep();
+  if (step === '6b') startConsultWait();
+  if (step === '6c') speak('담당자를 배정하였습니다. 문진에 응해 주셔서 감사합니다.');
+  if (step === 4) speak('그림에서 아픈 부위를 눌러 주세요.');
+  if (step === 5) renderZones();
+  if (step === 6) renderManagerInfo();
+  if (step === 7) { renderLegend(); replayRemoteGuide(); }
+  if (step === 8) loadMeasurements();
 }
 
 /* ---------- 1단계: 음성 안내 → 끝난 뒤 START_WAIT_MS 대기 → 자동 전환 ---------- */
@@ -125,6 +139,135 @@ function startWelcome() {
   });
 }
 function startSurvey() { clearTimeout(autoTimer); welcomeToken++; go(2); }
+
+/* ============================================================
+   2단계 — 방문 유형 (예약 / 일반 방문)
+   · 예약 고객: 3단계 전화번호로 예약 정보를 찾아 예약 시 체크한 부위를 불러오고
+                4단계(부위 선택)를 건너뛰어 바로 5단계(체험 추천)로 이동
+   · 일반 방문: 3단계 → 4단계 순서대로 진행
+   ============================================================ */
+function chooseVisit(type) {
+  state.visitType = type;
+  document.querySelectorAll('.visit-card').forEach(el => el.classList.toggle('chosen', el.dataset.visit === type));
+  speak(type === 'reserved' ? '예약 고객으로 진행할게요.' : '일반 방문으로 진행할게요.');
+  setTimeout(() => go(3), 350);   // 선택 표시가 보인 뒤 이동
+}
+function startVisitStep() {
+  document.querySelectorAll('.visit-card').forEach(el => el.classList.toggle('chosen', el.dataset.visit === state.visitType));
+  speak('예약하고 오셨나요? 예약 고객 또는 일반 방문 중에 눌러 주세요.');
+}
+/* 예약 정보 조회 (프로토타입: config.js 의 RESERVATIONS 에서 전화번호로 찾음) */
+function findReservation(digits) {
+  return (typeof RESERVATIONS === 'object' && RESERVATIONS[digits]) || null;
+}
+/* 예약 시 체크한 부위를 문진 상태에 그대로 적용 (인체모형 하이라이트 포함) */
+function applyReservationParts(parts) {
+  state.parts = [];
+  document.querySelectorAll('.part').forEach(p => p.classList.remove('selected', 'pending', 'lv1', 'lv2', 'lv3'));
+  parts.forEach(({ part, lv }) => {
+    const el = document.querySelector(`.part[data-part="${part}"]`);   // 같은 이름 도형 중 첫 번째
+    if (!el) return;
+    state.parts.push({ id: el.dataset.id, part, lv });
+    el.classList.add('selected', 'lv' + lv);
+  });
+  renderSelected();
+}
+
+/* ============================================================
+   3단계 — 전화번호 입력 (데이터 수집용)
+   · 숫자 키패드만 제공 → 숫자 외 입력 불가
+   · 010-1234-5678 형식으로 자동 하이픈, 11자리 + 동의 체크 시 다음 단계
+   ============================================================ */
+function phoneDigits() { return state.phone || ''; }
+function formatPhone(d) {
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7, 11)}`;
+}
+function phoneKey(k) {
+  let d = phoneDigits();
+  if (k === 'del') d = d.slice(0, -1);
+  else if (k === 'clear') d = '';
+  else if (d.length < 11) d += k;
+  state.phone = d;
+  renderPhone();
+}
+function renderPhone() {
+  const d = phoneDigits();
+  const box = document.getElementById('phoneDisplay');
+  box.textContent = d ? formatPhone(d) : '010-0000-0000';
+  box.classList.toggle('placeholder', !d);
+  const valid = /^01[016789]\d{7,8}$/.test(d) && d.length === 11;
+  const agreed = document.getElementById('phoneAgree').checked;
+  document.getElementById('btnS3Next').disabled = !(valid && agreed);
+  document.getElementById('s3Status').textContent =
+    !d ? '휴대폰 번호 11자리를 눌러주세요'
+    : !valid ? `${d.length} / 11자리`
+    : !agreed ? '아래 동의에 체크해주세요'
+    : '입력이 완료되었어요';
+}
+function finishPhone() {
+  if (document.getElementById('btnS3Next').disabled) return;
+  console.log('[데이터 수집] 전화번호', formatPhone(phoneDigits()), '· 방문 유형:', state.visitType);
+  if (state.visitType === 'reserved') {
+    const rsv = findReservation(phoneDigits());
+    if (rsv) {
+      state.reservation = rsv;
+      applyReservationParts(rsv.parts);
+      toast('📅 예약 정보를 불러왔어요 · 체크하신 부위로 바로 추천해 드릴게요');
+      go(5);                     // 4단계(부위 선택) 건너뛰기
+      return;
+    }
+    state.reservation = null;
+    toast('예약 정보를 찾지 못했어요 · 불편한 부위를 직접 선택해주세요');
+    speak('예약 정보를 찾지 못했어요. 불편한 부위를 직접 선택해 주세요.');
+    go(4);
+    return;
+  }
+  go('3b');   // 일반 방문 → 3-1 방문 목적 선택
+}
+
+/* ============================================================
+   3-1단계 — 방문 목적 (일반 방문 고객만)
+   · experience : 제품 체험 먼저            → 4단계(부위 선택)
+   · consult    : 구매/구독(렌탈) 상담       → 6-1 상담 대기 화면 (문진 종료)
+   · both       : 체험 + 상담               → 4단계, 매니저에게 상담 희망 전달
+   ============================================================ */
+const PURPOSE_LABEL = { experience: '제품 체험', consult: '구매/구독(렌탈) 상담', both: '체험 + 구매/구독(렌탈) 상담' };
+function startPurposeStep() {
+  document.querySelectorAll('.purpose-card').forEach(el => el.classList.toggle('chosen', el.dataset.purpose === state.purpose));
+  speak('방문 목적을 선택해 주세요.');
+}
+function choosePurpose(p) {
+  state.purpose = p;
+  document.querySelectorAll('.purpose-card').forEach(el => el.classList.toggle('chosen', el.dataset.purpose === p));
+  setTimeout(() => go(p === 'consult' ? '6b' : 4), 350);
+}
+
+/* ---------- 6-1단계 — 상담 대기 (구매/구독 상담만 원하는 고객) ---------- */
+let consultTimer = null;
+function startConsultWait() {
+  clearTimeout(consultTimer);
+  if (!ticketNo) ticketNo = newTicketNo();
+  document.getElementById('consultWaitNo').textContent = ticketNo;
+  // 매니저 전달 (프로토타입: 콘솔 출력)
+  console.log('[매니저 전달] 상담 요청', {
+    time: new Date().toLocaleString('ko-KR'), ticket: ticketNo,
+    phone: formatPhone(phoneDigits()), visitType: state.visitType, purpose: PURPOSE_LABEL[state.purpose],
+  });
+  speak(`구매 상담 요청이 담당 매니저에게 전달되었어요. 고객님의 대기번호는 ${ticketNo}번입니다. 담당 매니저가 곧 안내해 드릴 예정이니 잠시만 기다려 주세요.`);
+  consultTimer = setTimeout(() => { if (state.step === '6b') go('6c'); }, MANAGER_WAIT_MS);
+}
+function startPhoneStep() {
+  renderPhone();
+  const reserved = state.visitType === 'reserved';
+  document.getElementById('phoneSub').textContent = reserved
+    ? '예약하실 때 등록한 휴대폰 번호를 눌러주세요 · 예약 정보를 찾아드려요'
+    : '체험 안내와 결과표 전송에만 사용돼요';
+  speak(reserved
+    ? '예약하실 때 등록한 휴대폰 번호를 눌러 주세요.'
+    : '휴대폰 번호를 눌러 주세요. 체험 안내와 결과표 전송에만 사용돼요.');
+}
 
 /* ============================================================
    한국어 조사 처리 — 받침 유무에 따라 "등이/다리가", "등을/다리를" 자동 선택
@@ -219,8 +362,8 @@ function renderSelected() {
   document.getElementById('selCount').textContent = groups.length;
   document.getElementById('emptyMsg').hidden = groups.length > 0;
   const ok = groups.length > 0;
-  document.getElementById('btnS2Next').disabled = !ok;
-  document.getElementById('s2Status').textContent = ok
+  document.getElementById('btnS4Next').disabled = !ok;
+  document.getElementById('s4Status').textContent = ok
     ? `${groups.length}곳 선택됨 · 더 고르거나 완료를 눌러주세요`
     : '부위를 1곳 이상 선택해주세요';
 }
@@ -228,7 +371,7 @@ function finishBody() {
   if (state.parts.length === 0) return;
   clearPending();
   state.zones = [];
-  go(3);
+  go(5);
 }
 
 /* ============================================================
@@ -249,44 +392,44 @@ function recommend() {
   return top.map(z => ({ key: z, reasons: [...new Set(reasons[z] || [])] }));
 }
 let recKeys = [];
-function renderZones() {
-  const recs = recommend();
-  recKeys = recs.map(r => r.key);
-  const grid = document.getElementById('zoneGrid');
-  grid.classList.toggle('single', recs.length === 1);
-  grid.innerHTML = recs.map(({ key, reasons }, i) => {
-    const z = ZONES[key];
-    return `
-    <div class="zone-card" data-zone="${key}" onclick="toggleZone('${key}')">
+/* 존 카드 1장 — badge: '가장 추천' | '함께 추천' | null */
+function zoneCard(key, badge, reasons, big) {
+  const z = ZONES[key];
+  return `
+    <div class="zone-card ${big ? 'big' : ''}" data-zone="${key}" onclick="toggleZone('${key}')">
       <div class="zone-icon" style="background:${z.color}">${z.icon}</div>
       <div class="zone-text">
-        <span class="rec-badge">${i === 0 ? '가장 추천' : '함께 추천'}</span>
+        ${badge ? `<span class="rec-badge ${badge === '가장 추천' ? '' : 'sub'}">${badge}</span>` : ''}
         <h2>${z.name}</h2>
         <p>${z.short}</p>
-        ${reasons.length ? `<div class="zone-reason">${reasons.join(' · ')} 불편에 도움이 돼요</div>` : ''}
+        ${reasons && reasons.length ? `<div class="zone-reason">${reasons.join(' · ')} 불편에 도움이 돼요</div>` : ''}
       </div>
       <div class="zone-check">✓</div>
     </div>`;
-  }).join('');
+}
+/* 모든 존을 처음부터 표시: 위 = 가장 추천 1개(크게), 아래 = 나머지 존 2열 */
+function renderZones() {
+  const recs = recommend();
+  recKeys = recs.map(r => r.key);
+  const top = recs[0];
+  const reasonOf = key => (recs.find(r => r.key === key) || {}).reasons || [];
 
-  // 대안: 추천과 무관하게 모든 존 직접 선택 (설명 포함)
-  const alt = document.getElementById('altZones');
-  alt.innerHTML = Object.entries(ZONES).map(([key, z]) => `
-    <div class="alt-zone" data-zone="${key}" onclick="toggleZone('${key}')">
-      <div class="zone-icon" style="background:${z.color}">${z.icon}</div>
-      <div style="flex:1; min-width:0;"><b>${z.name}</b><span>${z.short}</span></div>
-      <div class="zone-check">✓</div>
-    </div>`).join('');
-  alt.classList.remove('open');
-  document.getElementById('btnAlt').textContent = '다른 체험도 보고 싶어요 ▼';
+  // 추천 근거 표시: 예약 시 체크한 부위 / 방금 선택한 부위
+  const basis = document.getElementById('zoneBasis');
+  const chips = groupedParts().map(g => `<span class="chip lv${g.lv}">${g.part} ${g.lv}단계</span>`).join('');
+  basis.innerHTML = state.reservation
+    ? `<span class="basis-label">📅 예약 시 체크하신 부위</span>${chips}<button class="btn btn-ghost basis-edit" onclick="go(4)">부위 바꾸기</button>`
+    : `<span class="basis-label">선택하신 부위</span>${chips}`;
+
+  document.getElementById('zoneTop').innerHTML = zoneCard(top.key, '가장 추천', top.reasons, true);
+  document.getElementById('zoneGrid').innerHTML = Object.keys(ZONES)
+    .filter(key => key !== top.key)
+    .map(key => zoneCard(key, recKeys.includes(key) ? '함께 추천' : null, reasonOf(key), false))
+    .join('');
+
   updateZoneUI();
   const names = recs.map(r => ZONES[r.key].name).join('과 ');
-  speak(`${josa(names, '을를')} 추천드려요. 원하시는 체험을 모두 눌러 주세요. 다른 체험을 원하시면 아래 버튼을 눌러 주세요.`);
-}
-function toggleAlt() {
-  const alt = document.getElementById('altZones');
-  const open = alt.classList.toggle('open');
-  document.getElementById('btnAlt').textContent = open ? '다른 체험 접기 ▲' : '다른 체험도 보고 싶어요 ▼';
+  speak(`${josa(names, '을를')} 추천드려요. 원하시는 체험을 모두 눌러 주세요. 다른 체험도 함께 고르실 수 있어요.`);
 }
 function toggleZone(key) {
   const idx = state.zones.indexOf(key);
@@ -297,7 +440,7 @@ function toggleZone(key) {
 function updateZoneUI() {
   document.querySelectorAll('[data-zone]').forEach(el => el.classList.toggle('chosen', state.zones.includes(el.dataset.zone)));
   const ok = state.zones.length > 0;
-  document.getElementById('btnS3Next').disabled = !ok;
+  document.getElementById('btnS5Next').disabled = !ok;
   const strip = document.getElementById('chosenStrip');
   strip.innerHTML = ok
     ? `<span class="label">선택한 체험</span>` + state.zones.map(k => `<span class="chip blue">${ZONES[k].icon} ${ZONES[k].name}</span>`).join('')
@@ -308,18 +451,25 @@ function confirmZones() {
   // 매니저 전달 (프로토타입: 콘솔 출력)
   const payload = {
     time: new Date().toLocaleString('ko-KR'),
+    phone: formatPhone(phoneDigits()),
+    visitType: state.visitType,                       // 'reserved' | 'walkin'
+    purpose: state.purpose ? PURPOSE_LABEL[state.purpose] : null,   // 일반 방문의 방문 목적
+    fromReservation: !!state.reservation,             // 부위 정보가 예약 시 체크한 것인지
     parts: groupedParts().map(g => ({ part: g.part, lv: g.lv })),
     zones: state.zones.map(k => ZONES[k].name),
     recommended: recKeys.map(k => ZONES[k].name),
   };
   console.log('[매니저 전달] 문진 결과', payload);
-  go(4);
+  go(6);
 }
 
 /* ============================================================
    4단계 — 매니저 전달 확인 (신규)
    ============================================================ */
 function renderManagerInfo() {
+  // 대기번호 발급 (한 고객당 하나 · 프로토타입은 1~20 사이 임의 번호, 실제는 서버 발급)
+  if (!ticketNo) ticketNo = newTicketNo();
+  document.getElementById('waitNo').textContent = ticketNo;
   const grid = document.getElementById('infoGrid');
   grid.classList.toggle('single', state.zones.length === 1);
   grid.innerHTML = state.zones.map(k => {
@@ -336,24 +486,49 @@ function renderManagerInfo() {
     </div>`;
   }).join('');
   const names = state.zones.map(k => ZONES[k].name).join(', ');
-  speak(`선택하신 ${names} 체험이 담당 매니저에게 전달되었어요. 잠시만 기다려 주시면 매니저가 안내해 드릴게요.`);
-  // 테이블오더 방식: 일정 시간 머물면 매니저 호출 안내창 표시
-  managerTimer = setTimeout(() => { if (state.step === 4) showManagerModal(); }, MANAGER_WAIT_MS);
+  speak(`선택하신 ${names} 체험이 담당 매니저에게 전달되었어요. 고객님의 대기번호는 ${ticketNo}번입니다. 잠시만 기다려 주시면 매니저가 안내해 드릴게요.`);
+  // 테이블오더 방식: 일정 시간 뒤 담당 매니저 배정 → 안내창 표시 (그 전에는 체험 시작 불가)
+  if (!managerAssigned) {
+    document.getElementById('s6Status').textContent = '담당 직원을 배정하고 있어요…';
+    managerTimer = setTimeout(() => { if (state.step === 6) showManagerModal(); }, MANAGER_WAIT_MS);
+  } else {
+    document.getElementById('s6Status').textContent = '담당 매니저가 배정되었어요 · 체험을 시작하세요';
+  }
 }
 
-/* ---------- 매니저 호출 안내창 (테이블오더 방식) ---------- */
+/* ---------- 매니저 배정 · 호출 안내창 (테이블오더 방식) ---------- */
 let managerTimer = null;
-let ticketNo = null;   // 접수 번호 — 한 고객(한 번의 문진)당 하나
+let managerAssigned = false;   // 매니저 호출 안내창이 뜬 뒤 true → 체험 시작 가능
+let ticketNo = null;           // 대기번호 — 한 고객(한 번의 문진)당 하나
+function newTicketNo() {   // 1 ~ TICKET_MAX (config.js 에 없으면 20)
+  const max = typeof TICKET_MAX === 'number' ? TICKET_MAX : 20;
+  return String(Math.floor(Math.random() * max) + 1);
+}
 function showManagerModal() {
-  if (!ticketNo) ticketNo = String(Math.floor(Math.random() * 90) + 10);   // 프로토타입: 임의 2자리 번호
+  if (!ticketNo) ticketNo = newTicketNo();
+  managerAssigned = true;
+  closeNotReadyModal();
   document.getElementById('ticketNo').textContent = ticketNo + '번';
   document.getElementById('ticketZones').textContent = state.zones.map(k => ZONES[k].name).join(' · ');
   document.getElementById('managerModal').hidden = false;
+  document.getElementById('s6Status').textContent = '담당 매니저가 배정되었어요 · 체험을 시작하세요';
   console.log('[매니저 호출]', { ticket: ticketNo, zones: state.zones.map(k => ZONES[k].name), time: new Date().toLocaleString('ko-KR') });
   speak('잠시 후 담당 매니저가 체험 안내를 도와드리겠습니다. 자리에서 편안히 기다려 주세요.');
 }
 function closeManagerModal() {
   document.getElementById('managerModal').hidden = true;
+}
+/* 체험 시작 버튼: 매니저 배정 전이면 대기 안내창, 배정 후면 6단계로 */
+function startExperience() {
+  if (!managerAssigned) {
+    document.getElementById('notReadyModal').hidden = false;
+    speak('아직 담당 직원이 배정되지 않았어요. 잠시만 기다려 주세요.');
+    return;
+  }
+  go(7);
+}
+function closeNotReadyModal() {
+  document.getElementById('notReadyModal').hidden = true;
 }
 function callManagerAgain() {
   console.log('[매니저 재호출]', { ticket: ticketNo, time: new Date().toLocaleString('ko-KR') });
@@ -512,17 +687,17 @@ function interpret(m) {
 }
 
 async function loadMeasurements() {
-  const content = document.getElementById('s6Content');
-  document.getElementById('s6Loading').hidden = false;
+  const content = document.getElementById('s8Content');
+  document.getElementById('s8Loading').hidden = false;
   content.hidden = true;
-  document.getElementById('btnS6Next').hidden = true;
+  document.getElementById('btnS8Next').hidden = true;
   document.getElementById('btnTakeResult').hidden = true;
-  document.getElementById('s6Status').textContent = '';
+  document.getElementById('s8Status').textContent = '';
   document.getElementById('report').classList.remove('open');
   document.getElementById('btnDetail').textContent = '📋 자세히 보기 ▼';
 
   const { data, source, measuredAt } = await fetchMeasurements();
-  if (state.step !== 6) return;
+  if (state.step !== 8) return;
   const items = interpret(data);
 
   // 1) 간단 설명
@@ -570,15 +745,15 @@ async function loadMeasurements() {
       </div>
     </details>`).join('');
 
-  document.getElementById('s6Loading').hidden = true;
+  document.getElementById('s8Loading').hidden = true;
   content.hidden = false;
-  document.getElementById('btnS6Next').hidden = false;
+  document.getElementById('btnS8Next').hidden = false;
   document.getElementById('btnTakeResult').hidden = false;
   if (source === 'live') {
     const when = measuredAt ? new Date(measuredAt).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
-    document.getElementById('s6Status').textContent = `측정 시각 ${when} · 결과는 매니저에게도 전달되었어요`;
+    document.getElementById('s8Status').textContent = `측정 시각 ${when} · 결과는 매니저에게도 전달되었어요`;
   } else {
-    document.getElementById('s6Status').textContent = '⚠ 측정기기와 연결되지 않아 예시 데이터를 보여드리고 있어요';
+    document.getElementById('s8Status').textContent = '⚠ 측정기기와 연결되지 않아 예시 데이터를 보여드리고 있어요';
   }
 
   // 게이지 마커 애니메이션 (간단/자세히 모두)
