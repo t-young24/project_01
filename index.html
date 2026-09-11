@@ -21,7 +21,9 @@
       <div class="step-dot" data-step="3">3</div><div class="step-line"></div>
       <div class="step-dot" data-step="4">4</div><div class="step-line"></div>
       <div class="step-dot" data-step="5">5</div><div class="step-line"></div>
-      <div class="step-dot" data-step="6">6</div>
+      <div class="step-dot" data-step="6">6</div><div class="step-line"></div>
+      <div class="step-dot" data-step="7">7</div><div class="step-line"></div>
+      <div class="step-dot" data-step="8">8</div>
     </div>
     <div class="header-right">
       <button class="btn btn-icon" id="btnSound" onclick="toggleSound()" title="음성 안내 켜기/끄기">🔊</button>
@@ -43,8 +45,91 @@
       <div class="auto-bar"><div id="autoBar"></div></div>
     </section>
 
-    <!-- ============ 2단계: 인체모형 부위 선택 ============ -->
+    <!-- ============ 2단계: 방문 유형 (예약 / 일반 방문) ============ -->
     <section class="screen" id="s2">
+      <div style="margin-bottom:12px; text-align:center;">
+        <h1>예약하고 오셨나요?</h1>
+        <p class="sub">해당하는 버튼을 눌러주세요</p>
+      </div>
+      <div class="visit-layout">
+        <div class="visit-card" data-visit="reserved" onclick="chooseVisit('reserved')">
+          <div class="visit-icon">📅</div>
+          <h2>예약 고객</h2>
+          <p>사전 예약 때 체크하신 불편 부위를 불러와<br>바로 체험을 추천해 드려요</p>
+          <div class="zone-check">✓</div>
+        </div>
+        <div class="visit-card" data-visit="walkin" onclick="chooseVisit('walkin')">
+          <div class="visit-icon">🚶</div>
+          <h2>일반 방문</h2>
+          <p>예약 없이 왔습니다<br>빠른 체험 안내를 해드리기 위하여 문진을 작성해주세요</p>
+          <div class="zone-check">✓</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3단계: 전화번호 입력 (데이터 수집용) ============ -->
+    <section class="screen" id="s3">
+      <div style="margin-bottom:12px;">
+        <h1>휴대폰 번호를 입력해주세요</h1>
+        <p class="sub" id="phoneSub">체험 안내와 결과표 전송에만 사용돼요</p>
+      </div>
+      <div class="phone-layout">
+        <div class="phone-left">
+          <div class="phone-display placeholder" id="phoneDisplay">010-0000-0000</div>
+          <label class="agree-box">
+            <input type="checkbox" id="phoneAgree" onchange="renderPhone()">
+            <span class="agree-check"></span>
+            <span class="agree-text"><b>개인정보 수집·이용에 동의합니다</b><br>수집 항목: 휴대폰 번호 · 이용 목적: 체험 안내, 결과표 전송, 체험 이력</span>
+          </label>
+        </div>
+        <div class="keypad">
+          <button class="key" onclick="phoneKey('1')">1</button>
+          <button class="key" onclick="phoneKey('2')">2</button>
+          <button class="key" onclick="phoneKey('3')">3</button>
+          <button class="key" onclick="phoneKey('4')">4</button>
+          <button class="key" onclick="phoneKey('5')">5</button>
+          <button class="key" onclick="phoneKey('6')">6</button>
+          <button class="key" onclick="phoneKey('7')">7</button>
+          <button class="key" onclick="phoneKey('8')">8</button>
+          <button class="key" onclick="phoneKey('9')">9</button>
+          <button class="key key-fn" onclick="phoneKey('clear')">전체 지움</button>
+          <button class="key" onclick="phoneKey('0')">0</button>
+          <button class="key key-fn" onclick="phoneKey('del')">⌫ 지움</button>
+        </div>
+      </div>
+      <div class="screen-footer">
+        <span class="sub" id="s3Status">휴대폰 번호 11자리를 눌러주세요</span>
+        <button class="btn btn-primary btn-xl" id="btnS3Next" onclick="finishPhone()" disabled>다음 ▶</button>
+      </div>
+    </section>
+
+    <!-- ============ 3-1단계: 방문 목적 (일반 방문 고객만) ============ -->
+    <section class="screen" id="s3b">
+      <div style="margin-bottom:12px; text-align:center;">
+        <h1>방문 목적을 선택해주세요</h1>
+        <p class="sub">해당하는 버튼을 눌러주세요</p>
+      </div>
+      <div class="purpose-layout">
+        <div class="purpose-card" data-purpose="experience" onclick="choosePurpose('experience')">
+          <div class="purpose-icon" style="background:var(--green-bg)">🛋️</div>
+          <h2>제품 체험을 먼저 해보고 싶어요</h2>
+          <div class="zone-check">✓</div>
+        </div>
+        <div class="purpose-card" data-purpose="consult" onclick="choosePurpose('consult')">
+          <div class="purpose-icon" style="background:var(--yellow-bg)">💬</div>
+          <h2>구매/구독(렌탈) 상담을 받고 싶어요</h2>
+          <div class="zone-check">✓</div>
+        </div>
+        <div class="purpose-card" data-purpose="both" onclick="choosePurpose('both')">
+          <div class="purpose-icon two" style="background:var(--blue-light)"><span>🛋️</span><span>💬</span></div>
+          <h2>제품 체험과 구매/구독(렌탈) 상담을 함께 받고 싶어요</h2>
+          <div class="zone-check">✓</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4단계: 인체모형 부위 선택 ============ -->
+    <section class="screen" id="s4">
       <div style="margin-bottom:16px;">
         <h1>아픈 부위를 눌러주세요</h1>
         <p class="sub">최대 5곳까지 고를 수 있어요 · 다시 누르면 취소돼요</p>
@@ -148,50 +233,76 @@
         </div>
       </div>
       <div class="screen-footer">
-        <span class="sub" id="s2Status">부위를 1곳 이상 선택해주세요</span>
-        <button class="btn btn-primary btn-xl" id="btnS2Next" onclick="finishBody()" disabled>선택 완료 ▶</button>
+        <span class="sub" id="s4Status">부위를 1곳 이상 선택해주세요</span>
+        <button class="btn btn-primary btn-xl" id="btnS4Next" onclick="finishBody()" disabled>선택 완료 ▶</button>
       </div>
     </section>
 
-    <!-- ============ 3단계: 체험존 추천 (다중 선택) ============ -->
-    <section class="screen" id="s3">
-      <div style="margin-bottom:14px;">
+    <!-- ============ 5단계: 체험존 추천 (다중 선택) ============ -->
+    <section class="screen" id="s5">
+      <div style="margin-bottom:10px;">
         <h1>이런 체험을 추천드려요</h1>
-        <p class="sub">선택하신 부위에 맞춰 골라드렸어요 · 원하시는 곳을 모두 눌러주세요 (여러 개 가능)</p>
+        <p class="sub">불편 부위에 맞춰 골라드렸어요 · 원하시는 곳을 모두 눌러주세요 (여러 개 가능)</p>
       </div>
+      <div class="zone-basis" id="zoneBasis"></div>
       <div class="scroll-area">
+        <!-- 위: 가장 추천 1개 (크게) / 아래: 나머지 존 2열 -->
+        <div class="zone-top" id="zoneTop"></div>
         <div class="zone-grid" id="zoneGrid"></div>
-        <div class="alt-wrap">
-          <button class="btn btn-secondary" id="btnAlt" onclick="toggleAlt()">다른 체험도 보고 싶어요 ▼</button>
-          <div class="alt-zones" id="altZones"></div>
-        </div>
       </div>
       <div class="screen-footer">
         <div class="chosen-strip" id="chosenStrip"></div>
-        <button class="btn btn-primary btn-xl" id="btnS3Next" onclick="confirmZones()" disabled>선택 완료 ▶</button>
+        <button class="btn btn-primary btn-xl" id="btnS5Next" onclick="confirmZones()" disabled>선택 완료 ▶</button>
       </div>
     </section>
 
-    <!-- ============ 4단계: 매니저 전달 확인 (신규) ============ -->
-    <section class="screen" id="s4">
+    <!-- ============ 6단계: 매니저 전달 확인 ============ -->
+    <section class="screen" id="s6">
       <div class="sent-banner">
         <div class="check">✓</div>
         <div>
           <h1>선택하신 체험이 담당 매니저에게 전달되었어요</h1>
           <p>잠시만 기다려 주세요. 매니저가 곧 체험 자리로 안내해 드릴게요.</p>
         </div>
+        <div class="wait-no">
+          <span class="wait-no-label">대기번호</span>
+          <span class="wait-no-num"><b id="waitNo">-</b>번</span>
+        </div>
       </div>
       <div class="scroll-area">
         <div class="info-grid" id="infoGrid"></div>
       </div>
       <div class="screen-footer">
-        <span class="sub">아래 내용을 확인하셨으면 버튼을 눌러주세요</span>
-        <button class="btn btn-primary btn-xl" onclick="go(5)">확인했어요 · 체험 시작 ▶</button>
+        <span class="sub" id="s6Status">담당 직원을 배정하고 있어요…</span>
+        <button class="btn btn-primary btn-xl" id="btnS6Next" onclick="startExperience()">체험 시작 ▶</button>
       </div>
     </section>
 
-    <!-- ============ 5단계: 체험 중 리모컨 안내 ============ -->
-    <section class="screen" id="s5">
+    <!-- ============ 6-1단계: 상담 대기 (구매/구독 상담만 원하는 고객) ============ -->
+    <section class="screen" id="s6b">
+      <div class="final-wrap">
+        <div class="final-icon waiting">⏳</div>
+        <h1>담당 매니저가 곧 안내해 드릴 예정이에요</h1>
+        <p class="sub">잠시만 기다려 주세요. 상담 요청이 매니저에게 전달되었어요.</p>
+        <div class="wait-no big">
+          <span class="wait-no-label">대기번호</span>
+          <span class="wait-no-num"><b id="consultWaitNo">-</b>번</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 6-2단계: 담당자 배정 완료 ============ -->
+    <section class="screen" id="s6c">
+      <div class="final-wrap">
+        <div class="final-icon done">✓</div>
+        <h1>담당자를 배정하였습니다</h1>
+        <p class="sub">문진에 응해주셔서 감사합니다.<br>담당 매니저가 자리로 안내해 드릴게요.</p>
+        <button class="btn btn-primary btn-xl" style="margin-top:36px" onclick="goHome()">처음 화면으로 ⌂</button>
+      </div>
+    </section>
+
+    <!-- ============ 7단계: 체험 중 리모컨 안내 ============ -->
+    <section class="screen" id="s7">
       <button class="help-banner" onclick="replayRemoteGuide()">❓ 버튼 사용법이 궁금하면 여기를 눌러 다시 확인하세요</button>
       <div class="remote-layout">
         <div class="remote-stage">
@@ -251,21 +362,21 @@
       </div>
       <div class="screen-footer">
         <span class="sub">체험이 끝나면 오른쪽 버튼을 눌러 결과를 확인하세요</span>
-        <button class="btn btn-primary btn-xl" onclick="go(6)">체험 끝 · 결과 보기 ▶</button>
+        <button class="btn btn-primary btn-xl" onclick="go(8)">체험 끝 · 결과 보기 ▶</button>
       </div>
     </section>
 
-    <!-- ============ 6단계: 세라체크존 결과 리포트 ============ -->
-    <section class="screen" id="s6">
+    <!-- ============ 8단계: 세라체크존 결과 리포트 ============ -->
+    <section class="screen" id="s8">
       <div style="margin-bottom:14px;">
         <h1>체험 마치느라 수고하셨어요 · 오늘의 건강 체크 결과예요</h1>
         <p class="sub">세라체크존에서 측정한 결과를 쉽게 정리해드려요 · 집에서도 참고하실 수 있게 관리 방법도 함께 담았어요</p>
       </div>
-      <div class="loading" id="s6Loading">
+      <div class="loading" id="s8Loading">
         <div class="spinner"></div>
         <div style="font-size:26px; font-weight:700;">측정 결과를 불러오고 있어요…</div>
       </div>
-      <div class="scroll-area" id="s6Content" hidden>
+      <div class="scroll-area" id="s8Content" hidden>
         <!-- 1) 간단 설명 (항상 표시) -->
         <div class="measure-grid" id="measureGrid"></div>
         <!-- 2) 자세한 설명 (버튼을 눌러야 펼침) -->
@@ -280,9 +391,9 @@
       <div class="screen-footer">
         <div class="footer-left">
           <button class="btn btn-secondary btn-xl" id="btnTakeResult" onclick="showQrModal()" hidden>📱 결과표 가져가기</button>
-          <span class="sub" id="s6Status"></span>
+          <span class="sub" id="s8Status"></span>
         </div>
-        <button class="btn btn-primary btn-xl" id="btnS6Next" onclick="goHome()" hidden>처음 화면으로 ⌂</button>
+        <button class="btn btn-primary btn-xl" id="btnS8Next" onclick="goHome()" hidden>처음 화면으로 ⌂</button>
       </div>
     </section>
 
@@ -291,7 +402,7 @@
 
 <div id="toast"></div>
 
-<!-- ============ 6단계: 결과표 가져가기 QR 창 ============ -->
+<!-- ============ 8단계: 결과표 가져가기 QR 창 ============ -->
 <div class="overlay" id="qrModal" hidden>
   <div class="modal qr-modal">
     <h1>휴대폰으로 결과표를 가져가세요</h1>
@@ -308,7 +419,19 @@
   </div>
 </div>
 
-<!-- ============ 4단계: 매니저 호출 안내창 (테이블오더 방식) ============ -->
+<!-- ============ 6단계: 직원 배정 전 안내창 ============ -->
+<div class="overlay" id="notReadyModal" hidden>
+  <div class="modal">
+    <div class="modal-bell" style="animation:none">⏳</div>
+    <h1>아직 담당 직원이<br>배정되지 않았어요</h1>
+    <p class="sub">잠시만 기다려 주세요.<br>담당 매니저가 배정되면 화면으로 알려드릴게요.</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-xl" onclick="closeNotReadyModal()">확인완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 6단계: 매니저 호출 안내창 (테이블오더 방식) ============ -->
 <div class="overlay" id="managerModal" hidden>
   <div class="modal">
     <div class="modal-bell">🔔</div>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>세라젬 웰라운지 매니저 응대카드</title>
+<link rel="stylesheet" href="css/manager.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ 상단 바 ============ -->
+  <header class="topbar">
+    <div class="brand"><span class="logo">C</span>세라젬 웰라운지 <span class="brand-sub">매니저</span></div>
+    <nav class="tabs">
+      <button class="tab active" data-view="queue" onclick="showView('queue')">대기 고객 <span class="tab-badge" id="queueCount">0</span></button>
+      <button class="tab" data-view="stats" onclick="showView('stats')">근무 현황</button>
+    </nav>
+    <div class="topbar-right">
+      <button class="btn btn-sim" onclick="simulateArrival()">＋ 새 문진 도착 (시뮬)</button>
+      <div class="clock" id="clock">--:--</div>
+      <div class="manager" id="managerName">매니저</div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ A. 대기 고객 목록 ============ -->
+    <section class="view active" id="viewQueue">
+      <div class="summary-strip" id="summaryStrip"></div>
+      <div class="queue-head">
+        <span>우선순위 순 — <b>오래 기다린 고객부터</b> (니즈 파악이 늦어질수록 응대 건수가 줄어요)</span>
+        <span class="legend">
+          <i class="dot p3"></i>우선 10분↑ <i class="dot p2"></i>주의 5분↑ <i class="dot p1"></i>여유
+        </span>
+      </div>
+      <div class="queue-list" id="queueList"></div>
+    </section>
+
+    <!-- ============ B. 응대카드 상세 ============ -->
+    <section class="view" id="viewDetail">
+      <div id="detailBody"></div>
+    </section>
+
+    <!-- ============ C. 근무 현황 ============ -->
+    <section class="view" id="viewStats">
+      <div class="stats-head">
+        <h1>오늘 내 근무 현황</h1>
+        <p class="sub">업무 부담을 스스로 확인하는 용도예요. 수치는 전월 일평균과 비교했어요.</p>
+      </div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="insight-box" id="insightBox"></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/manager.js"></script>
+</body>
+</html>
