@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>세라젬 웰라운지 셀프 문진</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ 상단 바 ============ -->
+  <header>
+    <div style="display:flex; align-items:center; gap:20px;">
+      <button class="btn btn-back" id="btnBack" onclick="goBack()">◀ 이전</button>
+      <div class="brand"><span class="logo">C</span>세라젬 웰라운지</div>
+    </div>
+    <div class="steps" id="steps">
+      <div class="step-dot" data-step="1">1</div><div class="step-line"></div>
+      <div class="step-dot" data-step="2">2</div><div class="step-line"></div>
+      <div class="step-dot" data-step="3">3</div><div class="step-line"></div>
+      <div class="step-dot" data-step="4">4</div><div class="step-line"></div>
+      <div class="step-dot" data-step="5">5</div><div class="step-line"></div>
+      <div class="step-dot" data-step="6">6</div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-icon" id="btnSound" onclick="toggleSound()" title="음성 안내 켜기/끄기">🔊</button>
+      <button class="btn btn-back" onclick="goHome()">⌂ 처음으로</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ 1단계: 시작 ============ -->
+    <section class="screen" id="s1">
+      <div class="mic-wave">🔈</div>
+      <h1>불편하신 부분을<br>선택해주세요</h1>
+      <p class="sub">화면을 누르시면 바로 시작할 수 있어요</p>
+      <div style="margin-top:44px;">
+        <button class="btn btn-primary btn-xl" onclick="startSurvey()">시작하기 ▶</button>
+      </div>
+      <div class="auto-hint" id="autoHint">음성 안내를 들려드리고 있어요…</div>
+      <div class="auto-bar"><div id="autoBar"></div></div>
+    </section>
+
+    <!-- ============ 2단계: 인체모형 부위 선택 ============ -->
+    <section class="screen" id="s2">
+      <div style="margin-bottom:16px;">
+        <h1>아픈 부위를 눌러주세요</h1>
+        <p class="sub">최대 5곳까지 고를 수 있어요 · 다시 누르면 취소돼요</p>
+      </div>
+      <div class="body-layout">
+        <div class="body-stage">
+          <!-- 단순화한 정면 인체모형
+               · 각 도형(data-id)은 개별 터치/하이라이트
+               · 화면에 보이는 이름(data-part)은 좌우 구분 없이 통일 -->
+          <svg viewBox="0 0 320 660" id="bodySvg" aria-label="인체모형">
+            <g class="part" data-part="머리" data-id="head">
+              <circle class="shape" cx="160" cy="62" r="48"/>
+              <text x="160" y="62">머리</text>
+            </g>
+            <g class="part" data-part="목" data-id="neck">
+              <rect class="shape" x="138" y="110" width="44" height="34" rx="12"/>
+              <text x="160" y="127">목</text>
+            </g>
+            <g class="part" data-part="어깨" data-id="shoulder-l">
+              <rect class="shape" x="58" y="146" width="56" height="44" rx="20"/>
+              <text x="86" y="168">어깨</text>
+            </g>
+            <g class="part" data-part="어깨" data-id="shoulder-r">
+              <rect class="shape" x="206" y="146" width="56" height="44" rx="20"/>
+              <text x="234" y="168">어깨</text>
+            </g>
+            <g class="part" data-part="팔" data-id="arm-l">
+              <rect class="shape" x="58" y="196" width="46" height="190" rx="22"/>
+              <text x="81" y="292">팔</text>
+            </g>
+            <g class="part" data-part="팔" data-id="arm-r">
+              <rect class="shape" x="216" y="196" width="46" height="190" rx="22"/>
+              <text x="239" y="292">팔</text>
+            </g>
+            <g class="part" data-part="등" data-id="back">
+              <rect class="shape" x="114" y="146" width="92" height="110" rx="18"/>
+              <text x="160" y="201">등</text>
+            </g>
+            <g class="part" data-part="허리" data-id="waist">
+              <rect class="shape" x="114" y="262" width="92" height="74" rx="18"/>
+              <text x="160" y="299">허리</text>
+            </g>
+            <g class="part" data-part="골반" data-id="pelvis">
+              <rect class="shape" x="112" y="342" width="96" height="54" rx="18"/>
+              <text x="160" y="369">골반</text>
+            </g>
+            <g class="part" data-part="다리" data-id="thigh-l">
+              <rect class="shape" x="114" y="402" width="42" height="90" rx="18"/>
+              <text x="135" y="447">다리</text>
+            </g>
+            <g class="part" data-part="다리" data-id="thigh-r">
+              <rect class="shape" x="164" y="402" width="42" height="90" rx="18"/>
+              <text x="185" y="447">다리</text>
+            </g>
+            <g class="part" data-part="무릎" data-id="knee-l">
+              <circle class="shape" cx="135" cy="524" r="28"/>
+              <text x="135" y="524">무릎</text>
+            </g>
+            <g class="part" data-part="무릎" data-id="knee-r">
+              <circle class="shape" cx="185" cy="524" r="28"/>
+              <text x="185" y="524">무릎</text>
+            </g>
+            <g class="part" data-part="다리" data-id="calf-l">
+              <rect class="shape" x="114" y="556" width="42" height="90" rx="18"/>
+              <text x="135" y="601">다리</text>
+            </g>
+            <g class="part" data-part="다리" data-id="calf-r">
+              <rect class="shape" x="164" y="556" width="42" height="90" rx="18"/>
+              <text x="185" y="601">다리</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="side-panel">
+          <!-- 강도 선택 (부위를 누르면 나타남) -->
+          <div class="card intensity-card" id="intensityCard" hidden>
+            <h2 id="pendingTitle">허리가 얼마나 불편하세요?</h2>
+            <div class="lv-buttons">
+              <button class="lv-btn" data-lv="1" onclick="setIntensity(1)">
+                <span class="lv-num">1단계</span><span class="lv-name">약함</span>
+                <span class="lv-bar"><i></i><i></i><i></i></span>
+              </button>
+              <button class="lv-btn" data-lv="2" onclick="setIntensity(2)">
+                <span class="lv-num">2단계</span><span class="lv-name">보통</span>
+                <span class="lv-bar"><i></i><i></i><i></i></span>
+              </button>
+              <button class="lv-btn" data-lv="3" onclick="setIntensity(3)">
+                <span class="lv-num">3단계</span><span class="lv-name">심함</span>
+                <span class="lv-bar"><i></i><i></i><i></i></span>
+              </button>
+            </div>
+          </div>
+          <div class="card hint-card" id="hintCard">👈 왼쪽 그림에서<br>불편한 곳을 눌러주세요</div>
+
+          <!-- 선택된 부위 목록 -->
+          <div class="card selected-card">
+            <h2>선택한 부위 <span class="count-badge"><span id="selCount">0</span> / 5</span></h2>
+            <ul class="selected-list" id="selectedList"></ul>
+            <div class="empty-msg" id="emptyMsg">아직 선택한 부위가 없어요</div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-footer">
+        <span class="sub" id="s2Status">부위를 1곳 이상 선택해주세요</span>
+        <button class="btn btn-primary btn-xl" id="btnS2Next" onclick="finishBody()" disabled>선택 완료 ▶</button>
+      </div>
+    </section>
+
+    <!-- ============ 3단계: 체험존 추천 (다중 선택) ============ -->
+    <section class="screen" id="s3">
+      <div style="margin-bottom:14px;">
+        <h1>이런 체험을 추천드려요</h1>
+        <p class="sub">선택하신 부위에 맞춰 골라드렸어요 · 원하시는 곳을 모두 눌러주세요 (여러 개 가능)</p>
+      </div>
+      <div class="scroll-area">
+        <div class="zone-grid" id="zoneGrid"></div>
+        <div class="alt-wrap">
+          <button class="btn btn-secondary" id="btnAlt" onclick="toggleAlt()">다른 체험도 보고 싶어요 ▼</button>
+          <div class="alt-zones" id="altZones"></div>
+        </div>
+      </div>
+      <div class="screen-footer">
+        <div class="chosen-strip" id="chosenStrip"></div>
+        <button class="btn btn-primary btn-xl" id="btnS3Next" onclick="confirmZones()" disabled>선택 완료 ▶</button>
+      </div>
+    </section>
+
+    <!-- ============ 4단계: 매니저 전달 확인 (신규) ============ -->
+    <section class="screen" id="s4">
+      <div class="sent-banner">
+        <div class="check">✓</div>
+        <div>
+          <h1>선택하신 체험이 담당 매니저에게 전달되었어요</h1>
+          <p>잠시만 기다려 주세요. 매니저가 곧 체험 자리로 안내해 드릴게요.</p>
+        </div>
+      </div>
+      <div class="scroll-area">
+        <div class="info-grid" id="infoGrid"></div>
+      </div>
+      <div class="screen-footer">
+        <span class="sub">아래 내용을 확인하셨으면 버튼을 눌러주세요</span>
+        <button class="btn btn-primary btn-xl" onclick="go(5)">확인했어요 · 체험 시작 ▶</button>
+      </div>
+    </section>
+
+    <!-- ============ 5단계: 체험 중 리모컨 안내 ============ -->
+    <section class="screen" id="s5">
+      <button class="help-banner" onclick="replayRemoteGuide()">❓ 버튼 사용법이 궁금하면 여기를 눌러 다시 확인하세요</button>
+      <div class="remote-layout">
+        <div class="remote-stage">
+          <!-- 단순화한 리모컨 -->
+          <svg viewBox="0 0 260 520" aria-label="리모컨">
+            <rect x="20" y="10" width="220" height="500" rx="40" fill="#ffffff" stroke="#d9d0c2" stroke-width="4"/>
+            <rect x="40" y="30" width="180" height="70" rx="14" fill="#e9eef5"/>
+            <text x="130" y="72" text-anchor="middle" font-size="22" font-weight="800" fill="#2f6db5" font-family="inherit">CERAGEM</text>
+
+            <!-- 1 전원 -->
+            <g class="rbtn" data-r="1">
+              <circle cx="80" cy="150" r="34" fill="#d64545"/>
+              <text x="80" y="158" text-anchor="middle" font-size="26" fill="#fff" font-weight="800">⏻</text>
+              <circle cx="46" cy="118" r="16" fill="#d64545"/><text x="46" y="124" text-anchor="middle" font-size="18" fill="#fff" font-weight="800">1</text>
+            </g>
+            <!-- 2 시작/정지 -->
+            <g class="rbtn" data-r="2">
+              <circle cx="180" cy="150" r="34" fill="#2f6db5"/>
+              <text x="180" y="158" text-anchor="middle" font-size="24" fill="#fff" font-weight="800">▶Ⅱ</text>
+              <circle cx="214" cy="118" r="16" fill="#2f6db5"/><text x="214" y="124" text-anchor="middle" font-size="18" fill="#fff" font-weight="800">2</text>
+            </g>
+            <!-- 3 강도 -->
+            <g class="rbtn" data-r="3">
+              <rect x="46" y="210" width="68" height="130" rx="22" fill="#f2ebe0" stroke="#c9bda9" stroke-width="3"/>
+              <text x="80" y="248" text-anchor="middle" font-size="30" fill="#22303f" font-weight="800">▲</text>
+              <text x="80" y="282" text-anchor="middle" font-size="16" fill="#5b6875" font-weight="800">강도</text>
+              <text x="80" y="322" text-anchor="middle" font-size="30" fill="#22303f" font-weight="800">▼</text>
+              <circle cx="46" cy="210" r="16" fill="#3aa76d"/><text x="46" y="216" text-anchor="middle" font-size="18" fill="#fff" font-weight="800">3</text>
+            </g>
+            <!-- 4 온열 -->
+            <g class="rbtn" data-r="4">
+              <rect x="146" y="210" width="68" height="60" rx="18" fill="#f2ebe0" stroke="#c9bda9" stroke-width="3"/>
+              <text x="180" y="248" text-anchor="middle" font-size="28">🔥</text>
+              <circle cx="214" cy="210" r="16" fill="#d9a520"/><text x="214" y="216" text-anchor="middle" font-size="18" fill="#fff" font-weight="800">4</text>
+            </g>
+            <!-- 5 시간 -->
+            <g class="rbtn" data-r="5">
+              <rect x="146" y="280" width="68" height="60" rx="18" fill="#f2ebe0" stroke="#c9bda9" stroke-width="3"/>
+              <text x="180" y="318" text-anchor="middle" font-size="28">⏱</text>
+              <circle cx="214" cy="280" r="16" fill="#7c5cbf"/><text x="214" y="286" text-anchor="middle" font-size="18" fill="#fff" font-weight="800">5</text>
+            </g>
+            <!-- 6 모드 -->
+            <g class="rbtn" data-r="6">
+              <rect x="46" y="370" width="168" height="60" rx="18" fill="#f2ebe0" stroke="#c9bda9" stroke-width="3"/>
+              <text x="130" y="409" text-anchor="middle" font-size="24" fill="#22303f" font-weight="800">☰ 모드 선택</text>
+              <circle cx="46" cy="370" r="16" fill="#22303f"/><text x="46" y="376" text-anchor="middle" font-size="18" fill="#fff" font-weight="800">6</text>
+            </g>
+            <!-- 7 도움 -->
+            <g class="rbtn" data-r="7">
+              <rect x="46" y="445" width="168" height="48" rx="16" fill="#e4eef9" stroke="#2f6db5" stroke-width="3"/>
+              <text x="130" y="477" text-anchor="middle" font-size="20" fill="#2f6db5" font-weight="800">🔔 매니저 호출</text>
+              <circle cx="46" cy="445" r="16" fill="#2f6db5"/><text x="46" y="451" text-anchor="middle" font-size="18" fill="#fff" font-weight="800">7</text>
+            </g>
+          </svg>
+        </div>
+        <div class="remote-legend" id="remoteLegend"></div>
+      </div>
+      <div class="screen-footer">
+        <span class="sub">체험이 끝나면 오른쪽 버튼을 눌러 결과를 확인하세요</span>
+        <button class="btn btn-primary btn-xl" onclick="go(6)">체험 끝 · 결과 보기 ▶</button>
+      </div>
+    </section>
+
+    <!-- ============ 6단계: 세라체크존 결과 리포트 ============ -->
+    <section class="screen" id="s6">
+      <div style="margin-bottom:14px;">
+        <h1>체험 마치느라 수고하셨어요 · 오늘의 건강 체크 결과예요</h1>
+        <p class="sub">세라체크존에서 측정한 결과를 쉽게 정리해드려요 · 집에서도 참고하실 수 있게 관리 방법도 함께 담았어요</p>
+      </div>
+      <div class="loading" id="s6Loading">
+        <div class="spinner"></div>
+        <div style="font-size:26px; font-weight:700;">측정 결과를 불러오고 있어요…</div>
+      </div>
+      <div class="scroll-area" id="s6Content" hidden>
+        <!-- 1) 간단 설명 (항상 표시) -->
+        <div class="measure-grid" id="measureGrid"></div>
+        <!-- 2) 자세한 설명 (버튼을 눌러야 펼침) -->
+        <div class="detail-toggle">
+          <button class="btn btn-secondary" id="btnDetail" onclick="toggleReport()">📋 자세히 보기 ▼</button>
+        </div>
+        <div class="report" id="report">
+          <div class="report-title">📋 상세 건강 보고서 <span class="sub" style="font-size:19px;">· 항목을 누르면 펼쳐져요</span></div>
+          <div id="reportList"></div>
+        </div>
+      </div>
+      <div class="screen-footer">
+        <div class="footer-left">
+          <button class="btn btn-secondary btn-xl" id="btnTakeResult" onclick="showQrModal()" hidden>📱 결과표 가져가기</button>
+          <span class="sub" id="s6Status"></span>
+        </div>
+        <button class="btn btn-primary btn-xl" id="btnS6Next" onclick="goHome()" hidden>처음 화면으로 ⌂</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<!-- ============ 6단계: 결과표 가져가기 QR 창 ============ -->
+<div class="overlay" id="qrModal" hidden>
+  <div class="modal qr-modal">
+    <h1>휴대폰으로 결과표를 가져가세요</h1>
+    <p class="sub">휴대폰 카메라를 켜고 아래 네모를 비추면<br>오늘의 건강 체크 결과표가 열려요</p>
+    <div class="qr-box">
+      <svg id="qrSvg" viewBox="0 0 29 29" shape-rendering="crispEdges" aria-label="결과표 QR 코드"></svg>
+    </div>
+    <div class="qr-meta">
+      <span>📋 결과표 번호</span><b id="qrCode">-</b>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-xl" onclick="closeQrModal()">확인했어요</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 4단계: 매니저 호출 안내창 (테이블오더 방식) ============ -->
+<div class="overlay" id="managerModal" hidden>
+  <div class="modal">
+    <div class="modal-bell">🔔</div>
+    <h1>잠시 후 담당 매니저가<br>체험 안내를 도와드리겠습니다</h1>
+    <p class="sub">자리에서 편안히 기다려 주세요</p>
+    <div class="order-ticket">
+      <div class="ticket-row"><span>접수 번호</span><b id="ticketNo">-</b></div>
+      <div class="ticket-row"><span>선택한 체험</span><b id="ticketZones">-</b></div>
+      <div class="ticket-row"><span>상태</span><b class="ticket-status">매니저 호출됨 · 대기 중</b></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="callManagerAgain()">🔔 매니저 다시 호출</button>
+      <button class="btn btn-primary btn-xl" onclick="closeManagerModal()">네, 기다릴게요</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

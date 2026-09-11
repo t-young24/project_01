@@ -1,0 +1,9 @@
+{
+  "measuredAt": "2026-09-11T14:32:00+09:00",
+  "bloodPressure": { "sys": 124, "dia": 79 },
+  "pulse": 68,
+  "stress": 42,
+  "bodyFat": 26.3,
+  "muscle": 27.1,
+  "bodyTemp": 36.5
+}
