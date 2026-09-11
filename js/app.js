@@ -263,10 +263,10 @@ function startPhoneStep() {
   const reserved = state.visitType === 'reserved';
   document.getElementById('phoneSub').textContent = reserved
     ? '예약하실 때 등록한 휴대폰 번호를 눌러주세요 · 예약 정보를 찾아드려요'
-    : '체험 안내와 결과표 전송에만 사용돼요';
+    : '체험 안내와 결과표 전송, 체험 이력에만 사용';
   speak(reserved
     ? '예약하실 때 등록한 휴대폰 번호를 눌러 주세요.'
-    : '휴대폰 번호를 눌러 주세요. 체험 안내와 결과표 전송에만 사용돼요.');
+    : '휴대폰 번호를 눌러 주세요. 체험 안내와 결과표 전송, 체험 이력에만 사용돼요.');
 }
 
 /* ============================================================
