@@ -152,6 +152,9 @@
   #gate h2 { margin: 6px 0 0; font-size: 44px; letter-spacing: -1.5px; font-weight: 800; }
   #gate p { margin: 0 0 8px; color: #aab7c6; font-size: 19px; }
   #gate label { font-size: 17px; color: #dfe6ee; display: flex; gap: 10px; align-items: center; }
+  #gate label[hidden] { display: none; }
+  #gate select, #gate #btnTest { font: inherit; font-size: 15px; background: #1b2330; color: #dfe6ee; border: 1px solid #34404f; border-radius: 8px; padding: 5px 10px; max-width: 360px; }
+  #gate #btnTest { cursor: pointer; }
   #gate button { font: inherit; font-size: 26px; font-weight: 800; padding: 18px 56px; border-radius: 999px; border: 0; background: linear-gradient(145deg, #3d7fcb, #235391); color: #fff; cursor: pointer; margin-top: 12px; box-shadow: 0 14px 40px rgba(47,109,181,.45); letter-spacing: -.3px; }
   #gate .keys { margin-top: 14px; font-size: 14.5px; color: #7f8b98; }
   #gate kbd { background: #263040; padding: 2px 8px; border-radius: 6px; font-family: inherit; color: #cfd8e3; }
@@ -237,7 +240,11 @@
     <div class="kicker">Promo · 약 80초</div>
     <h2>세라젬 웰라운지 셀프 문진</h2>
     <p>실제 고객용 · 매니저용 화면을 자동으로 시연</p>
-    <label><input type="checkbox" id="optVoice" checked> 나레이션 (브라우저 한국어 음성)</label>
+    <label><input type="checkbox" id="optVoice" checked> 나레이션
+      <select id="optVoiceName" title="브라우저 음성 선택"><option value="">자동 (한국어 음성)</option></select>
+      <button type="button" id="btnTest" title="선택한 음성 미리 듣기">🔊 미리 듣기</button>
+    </label>
+    <label id="optMp3Row" hidden><input type="checkbox" id="optMp3" checked> mp3 나레이션 파일 사용 (promo/voice/scene1~7.mp3)</label>
     <label><input type="checkbox" id="optBgm" checked> 배경음악 (bgm.mp3)</label>
     <label><input type="checkbox" id="optLive"> 실제 Firebase 연동으로 시연</label>
     <button id="btnStart">▶ 재생</button>
@@ -353,8 +360,37 @@ function showScene(id) { document.querySelectorAll('.scene').forEach(el => el.cl
 /* ---------- 나레이션 (SpeechSynthesis ko-KR) ----------
    narr 는 문자열 또는 [문장 | {text, rate, pause}, ...] — 배열이면 문장 사이에 쉼 */
 let voice = null;
-function pickVoice() { const v = speechSynthesis.getVoices(); voice = v.find(x => x.lang === 'ko-KR') || v.find(x => x.lang && x.lang.startsWith('ko')) || null; }
+/* 한국어 음성 목록 → 시작 화면 select. 우선순위: Natural(Edge) > Google > 나머지. 선택은 localStorage 에 기억 (?tts=이름 으로도 지정) */
+function koVoices() { return speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('ko')); }
+function pickVoice() {
+  const list = koVoices(); const sel = $('optVoiceName');
+  const want = new URLSearchParams(location.search).get('tts') || localStorage.getItem('promoVoice') || '';
+  if (sel.options.length !== list.length + 1) {
+    sel.innerHTML = '<option value="">자동 (한국어 음성)</option>' + list.map(v => `<option value="${v.name}">${v.name}${/natural/i.test(v.name) ? ' ★' : ''}${v.localService ? '' : ' (온라인)'}</option>`).join('');
+  }
+  sel.value = list.some(v => v.name === want) ? want : '';
+  const score = v => (/natural/i.test(v.name) ? 3 : /google/i.test(v.name) ? 2 : 1);
+  voice = list.find(v => v.name === sel.value) || [...list].sort((a, b) => score(b) - score(a))[0] || null;
+}
 if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+$('optVoiceName').onchange = () => { localStorage.setItem('promoVoice', $('optVoiceName').value); pickVoice(); };
+$('btnTest').onclick = () => { pickVoice(); speechSynthesis.cancel(); speakOne('묻지 않아도, 이미 알고 있는 응대. 세라젬 웰라운지 셀프 문진입니다.', 0.95); };
+
+/* mp3 나레이션: promo/voice/scene1.mp3 … scene7.mp3 가 있으면 브라우저 음성 대신 재생 (파일이 없는 장면만 TTS) */
+const MP3 = { has: {}, el: new Audio() };
+async function detectMp3() {
+  await Promise.all([1, 2, 3, 4, 5, 6, 7].map(async n => { try { const r = await fetch(`voice/scene${n}.mp3`, { method: 'HEAD' }); MP3.has[n] = r.ok; } catch (e) { MP3.has[n] = false; } }));
+  const any = Object.values(MP3.has).some(Boolean);
+  $('optMp3Row').hidden = !any;
+  if (any) $('gateMsg').textContent = `mp3 나레이션 발견: ${Object.keys(MP3.has).filter(n => MP3.has[n]).map(n => 'scene' + n).join(', ')}`;
+}
+detectMp3();
+function playMp3(n) {
+  return new Promise(res => {
+    const a = MP3.el; a.pause(); a.src = `voice/scene${n}.mp3`; a.volume = 1;
+    a.onended = res; a.onerror = res; a.play().catch(res);
+  });
+}
 function speakOne(text, rate) {
   return new Promise(res => {
     const u = new SpeechSynthesisUtterance(text);
@@ -365,8 +401,10 @@ function speakOne(text, rate) {
     speechSynthesis.speak(u);
   });
 }
-async function narrate(narr) {
-  if (!$('optVoice').checked || !('speechSynthesis' in window)) return;   // 음성 없으면 장면 최소 길이(min)로 진행
+async function narrate(narr, sceneNo) {
+  if (!$('optVoice').checked) return;                                     // 음성 없으면 장면 최소 길이(min)로 진행
+  if (sceneNo && MP3.has[sceneNo] && $('optMp3').checked) return playMp3(sceneNo);
+  if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
   const parts = Array.isArray(narr) ? narr : [narr];
   for (let i = 0; i < parts.length; i++) {
@@ -584,7 +622,7 @@ for (let i = 0; i < 18; i++) { const d = document.createElement('i'); d.style.le
 
 async function playFrom(idx) {
   runToken++; const t = runToken;
-  if (window.speechSynthesis) speechSynthesis.cancel();
+  if (window.speechSynthesis) speechSynthesis.cancel(); MP3.el.pause();
   unhighlight(); hideFinger(); hideLink(); clearCallouts(); $('endhint').classList.remove('on');
   await loadApps(); if (!alive(t)) return;                 // 장면 점프: 앱을 새로 불러와 해당 장면 직전 상태로
   await fastForwardCust(idx + 1); if (!alive(t)) return;
@@ -594,7 +632,7 @@ async function playFrom(idx) {
     [...bar.children].forEach((el, k) => { el.classList.toggle('done', k < i); el.firstChild.style.transition = 'none'; el.firstChild.style.width = k < i ? '100%' : '0'; });
     const sc = SCENES[i], t0 = performance.now();
     subtitle(sc.sub);
-    const nar = narrate(sc.narr);
+    const nar = narrate(sc.narr, i + 1);
     requestAnimationFrame(() => { const b = bar.children[i].firstChild; b.style.transition = `width ${sc.min}ms linear`; b.style.width = '100%'; });
     try { await sc.run(t); } catch (e) { if (!alive(t)) return; console.error(e); }
     await nar; if (!alive(t)) return;
