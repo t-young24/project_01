@@ -240,11 +240,12 @@
     <div class="kicker">Promo · 약 80초</div>
     <h2>세라젬 웰라운지 셀프 문진</h2>
     <p>실제 고객용 · 매니저용 화면을 자동으로 시연</p>
-    <label><input type="checkbox" id="optVoice" checked> 나레이션
+    <label><input type="checkbox" id="optVoice" checked> 나레이션</label>
+    <label id="optMp3Row" hidden><input type="checkbox" id="optMp3" checked> mp3 나레이션 (voice/narration.mp3 · 문장별 큐 재생)</label>
+    <label id="optTtsRow" hidden>브라우저 음성(비활성)
       <select id="optVoiceName" title="브라우저 음성 선택"><option value="">자동 (한국어 음성)</option></select>
       <button type="button" id="btnTest" title="선택한 음성 미리 듣기">🔊 미리 듣기</button>
     </label>
-    <label id="optMp3Row" hidden><input type="checkbox" id="optMp3" checked> mp3 나레이션 파일 사용 (promo/voice/scene1~7.mp3)</label>
     <label><input type="checkbox" id="optBgm" checked> 배경음악 (bgm.mp3)</label>
     <label><input type="checkbox" id="optLive"> 실제 Firebase 연동으로 시연</label>
     <button id="btnStart">▶ 재생</button>
@@ -376,20 +377,78 @@ if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged 
 $('optVoiceName').onchange = () => { localStorage.setItem('promoVoice', $('optVoiceName').value); pickVoice(); };
 $('btnTest').onclick = () => { pickVoice(); speechSynthesis.cancel(); speakOne('묻지 않아도, 이미 알고 있는 응대. 세라젬 웰라운지 셀프 문진입니다.', 0.95); };
 
-/* mp3 나레이션: promo/voice/scene1.mp3 … scene7.mp3 가 있으면 브라우저 음성 대신 재생 (파일이 없는 장면만 TTS) */
-const MP3 = { has: {}, el: new Audio() };
+/* ============================================================
+   나레이션 mp3 (promo/voice/narration.mp3 — TTSMaker 로 통으로 생성)
+   · 파일 하나를 문장 단위 구간으로 잘라 재생. 각 장면은 [시작초, 끝초] 구간 여러 개 (문장별)
+   · 첫 구간은 장면 시작과 함께, 나머지 구간은 run() 안에서 cue(t, k) 를 부르는 순간 재생
+     → "불편한 부위를 누르고" 같은 문장이 실제 터치 순간에 나옴
+   · 구간 값은 무음 분석으로 찾은 것. 파일을 다시 만들면 이 숫자만 갱신 (README 참고)
+   ============================================================ */
+const NARR = {
+  src: 'voice/narration.mp3',
+  scenes: [
+    [[0.00, 5.30], [6.50, 10.50]],                   // 1 문제 제기: 다시 묻습니다. | (카운터) 평균 18분.
+    [[11.50, 13.10], [14.20, 21.40]],                // 2 타이틀: 그래서 만들었습니다. | (흐름도) 셀프 문진.
+    [[22.35, 31.40], [32.40, 37.65]],                // 3 고객 화면: 어렵지 않게. 큰 글씨… | (허리 터치) 불편한 부위를 누르고…
+    [[38.70, 43.95]],                                // 4 실시간 전달
+    [[45.00, 52.30], [53.30, 59.15]],                // 5 응대카드: 카드에는… | (응대 시작 터치) 매니저가 응대 시작을 누르면…
+    [[60.20, 64.40], [65.50, 70.35]],                // 6 결과: 세라체크 결과… | (수치 카드) 니즈 파악 시간은…
+    [[71.20, 78.82]],                                // 7 클로징
+  ],
+};
+const MP3 = { has: false, el: new Audio(), chain: Promise.resolve(), next: 0, parts: [], done: null };
 async function detectMp3() {
-  await Promise.all([1, 2, 3, 4, 5, 6, 7].map(async n => { try { const r = await fetch(`voice/scene${n}.mp3`, { method: 'HEAD' }); MP3.has[n] = r.ok; } catch (e) { MP3.has[n] = false; } }));
-  const any = Object.values(MP3.has).some(Boolean);
-  $('optMp3Row').hidden = !any;
-  if (any) $('gateMsg').textContent = `mp3 나레이션 발견: ${Object.keys(MP3.has).filter(n => MP3.has[n]).map(n => 'scene' + n).join(', ')}`;
+  try { const r = await fetch(NARR.src, { method: 'HEAD' }); MP3.has = r.ok; } catch (e) { MP3.has = false; }
+  if (MP3.has) ensureLoaded();
+  $('optMp3Row').hidden = !MP3.has;
+  $('optTtsRow').hidden = MP3.has;
+  if (!MP3.has) $('gateMsg').textContent = '⚠ promo/voice/narration.mp3 가 없어 나레이션 없이 재생됩니다';
 }
 detectMp3();
-function playMp3(n) {
+/* mp3 는 한 번만 불러두고(src 를 매번 바꾸면 재생 위치가 0 으로 돌아감) 구간마다 위치만 이동 */
+function ensureLoaded() {
   return new Promise(res => {
-    const a = MP3.el; a.pause(); a.src = `voice/scene${n}.mp3`; a.volume = 1;
-    a.onended = res; a.onerror = res; a.play().catch(res);
+    const a = MP3.el;
+    if (a.readyState >= 1) return res();
+    a.addEventListener('loadedmetadata', () => res(), { once: true });
+    a.addEventListener('error', () => res(), { once: true });
+    if (!a.src) { a.preload = 'auto'; a.src = NARR.src; }
+    a.load();
   });
+}
+/* mp3 의 [s, e] 구간만 재생 */
+async function playSeg([s, e]) {
+  const a = MP3.el; await ensureLoaded(); a.pause(); a.volume = 1;
+  if (Math.abs(a.currentTime - s) > 0.05) {                       // 구간 시작으로 이동하고 seeked 를 기다린 뒤 재생
+    await new Promise(res => { const done = () => res(); a.addEventListener('seeked', done, { once: true }); setTimeout(done, 1500); a.currentTime = s; });
+  }
+  await new Promise(res => {
+    let done = false, last = -1, stuck = 0;
+    const fin = () => { if (!done) { done = true; a.ontimeupdate = null; clearInterval(wd); res(); } };
+    a.ontimeupdate = () => { if (a.currentTime >= e) { a.pause(); fin(); } };
+    a.onended = fin; a.onerror = fin;
+    // 감시: 버퍼링 등으로 멈추면 다시 재생, 6초 넘게 안 움직이면 다음으로
+    const wd = setInterval(() => {
+      if (done) return;
+      if (a.currentTime === last) { stuck += 1; if (stuck === 4 || stuck === 8) a.play().catch(() => {}); if (stuck >= 16) fin(); }
+      else { stuck = 0; last = a.currentTime; }
+    }, 500);
+    a.play().catch(fin);
+  });
+}
+/* 장면의 k 번째 문장 구간을 지금 재생 (run() 에서 호출). 앞 구간이 아직 재생 중이면 끝난 뒤 이어서 */
+function cue(t, k) {
+  if (!MP3.has || !$('optVoice').checked || !$('optMp3').checked) return;
+  if (k !== MP3.next || k >= MP3.parts.length) return;
+  MP3.next = k + 1;
+  MP3.chain = MP3.chain.then(() => alive(t) ? playSeg(MP3.parts[k]) : null).then(() => { if (MP3.next >= MP3.parts.length && MP3.done) MP3.done(); });
+}
+/* run() 이 끝났는데 아직 안 나온 문장이 있으면 순서대로 마저 재생 */
+function flushCues(t) { while (MP3.next < MP3.parts.length) cue(t, MP3.next); }
+function narrateMp3(sceneNo, t) {
+  MP3.parts = NARR.scenes[sceneNo - 1] || []; MP3.next = 0; MP3.chain = Promise.resolve();
+  if (!MP3.parts.length) return Promise.resolve();
+  return new Promise(res => { MP3.done = res; cue(t, 0); });
 }
 function speakOne(text, rate) {
   return new Promise(res => {
@@ -401,9 +460,11 @@ function speakOne(text, rate) {
     speechSynthesis.speak(u);
   });
 }
-async function narrate(narr, sceneNo) {
+async function narrate(narr, sceneNo, t) {
   if (!$('optVoice').checked) return;                                     // 음성 없으면 장면 최소 길이(min)로 진행
-  if (sceneNo && MP3.has[sceneNo] && $('optMp3').checked) return playMp3(sceneNo);
+  if (MP3.has && $('optMp3').checked) return narrateMp3(sceneNo, t);
+  /* ---------- 기존 브라우저 TTS (SpeechSynthesis) — mp3 나레이션으로 교체하면서 비활성화 ----------
+     다시 쓰려면 아래 주석을 풀고, 시작 화면의 optTtsRow(음성 선택) hidden 도 detectMp3 에서 제어하면 됨
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
   const parts = Array.isArray(narr) ? narr : [narr];
@@ -412,6 +473,7 @@ async function narrate(narr, sceneNo) {
     await speakOne(item.text, item.rate);
     if (i < parts.length - 1) await wait(item.pause || 450);
   }
+  ---------------------------------------------------------------------------------------------- */
 }
 function countTo(el, from, to, ms, fixed) {
   const t0 = performance.now();
@@ -496,7 +558,7 @@ const SCENES = [
       };
       await step(t, 300); kick.classList.add('on');
       await step(t, 500); await typeAll(36);
-      $('q4').classList.add('on'); countTo($('cnt18'), 0, 18, 2400, 0);          // 스톱워치 + 0 → 18분
+      $('q4').classList.add('on'); countTo($('cnt18'), 0, 18, 2400, 0); cue(t, 1);   // 스톱워치 + 0 → 18분 · "평균 18분" 문장
       await step(t, 1600);
       // 나레이션이 끝날 때까지: "다시 처음부터" 질문이 반복해서 타이핑됨 (장면이 바뀌면 멈춤)
       const seq = sceneSeq;
@@ -517,6 +579,7 @@ const SCENES = [
       const flow = document.querySelectorAll('#sc2 .flow > *'); flow.forEach(e => e.classList.remove('on'));
       for (const e of els) { await step(t, 280); e.classList.add('on'); }
       await step(t, 1100);
+      cue(t, 1);                                                                        // "고객이 태블릿에서 직접…" 문장과 함께 흐름도
       for (const e of flow) { e.classList.add('on'); await step(t, e.classList.contains('arrow') ? 500 : 750); }   // 고객 → 전달 → 매니저 흐름
     },
   },
@@ -536,6 +599,7 @@ const SCENES = [
       await tap(devCust, ifCust, '#phoneAgree', t, 500); W1.document.getElementById('phoneAgree').checked = true; W1.renderPhone(); await step(t, 400);
       await tap(devCust, ifCust, '#btnS3Next', t, 600); W1.finishPhone(); await step(t, 1200);
       await tap(devCust, ifCust, '.purpose-card[data-purpose="experience"]', t, 900); W1.choosePurpose('experience'); await step(t, 1500);
+      cue(t, 1);                                                                        // "불편한 부위를 누르고 강도를 고르면…" 문장 시작
       callout(devCust, ifCust, '.part[data-id="waist"]', 3, '불편한 부위를 누르고', 'left');
       await tap(devCust, ifCust, '.part[data-id="waist"]', t, 900); W1.onPartTap('waist', '허리'); await step(t, 900);
       callout(devCust, ifCust, '.lv-btn[data-lv="3"]', 4, '강도를 고르면', 'bottom');
@@ -577,6 +641,7 @@ const SCENES = [
       highlight(devMgr, ifMgr, cards()[0]); callout(devMgr, ifMgr, cards()[0], 1, '부위 · 강도 · 니즈 한 줄', 'bottom', 22); await step(t, 2300); clearCallouts();
       highlight(devMgr, ifMgr, cards()[1]); callout(devMgr, ifMgr, cards()[1], 2, '지난 방문 기록', 'bottom', 22); await step(t, 2100); clearCallouts();
       highlight(devMgr, ifMgr, cards()[4]); callout(devMgr, ifMgr, cards()[4], 3, '오늘의 응대 포인트 3줄', 'top', 22); await step(t, 2300); unhighlight(); clearCallouts();
+      cue(t, 1);                                                                        // "매니저가 응대 시작을 누르면…" 문장 시작
       await tap(devMgr, ifMgr, '#viewDetail .d-actions .btn-primary', t, 900); W2.startServing(promoId()); hideFinger();
       if (!LIVE() && custWatchCb) custWatchCb('serving');
       await step(t, 900);
@@ -593,7 +658,7 @@ const SCENES = [
       W1.closeManagerModal(); W1.go(8);
       document.querySelectorAll('#sc6 .stat').forEach(e => e.classList.remove('on')); $('cnt1').textContent = '15.9';
       await step(t, 3200);
-      showScene('sc6');
+      showScene('sc6'); cue(t, 1);                                                     // "니즈 파악 시간은 절반 이하로…" 문장 시작
       const stats = document.querySelectorAll('#sc6 .stat');
       stats[0].classList.add('on'); countTo($('cnt1'), 15.9, 7.4, 1600, 1); await step(t, 800);
       stats[1].classList.add('on'); await step(t, 800);
@@ -632,9 +697,10 @@ async function playFrom(idx) {
     [...bar.children].forEach((el, k) => { el.classList.toggle('done', k < i); el.firstChild.style.transition = 'none'; el.firstChild.style.width = k < i ? '100%' : '0'; });
     const sc = SCENES[i], t0 = performance.now();
     subtitle(sc.sub);
-    const nar = narrate(sc.narr, i + 1);
+    const nar = narrate(sc.narr, i + 1, t);
     requestAnimationFrame(() => { const b = bar.children[i].firstChild; b.style.transition = `width ${sc.min}ms linear`; b.style.width = '100%'; });
     try { await sc.run(t); } catch (e) { if (!alive(t)) return; console.error(e); }
+    flushCues(t);
     await nar; if (!alive(t)) return;
     const left = sc.min - (performance.now() - t0); if (left > 0) { try { await step(t, left); } catch (e) { return; } }
     subtitle(''); clearCallouts();
