@@ -36,9 +36,17 @@
   #sc1 .q.on { opacity: 1; transform: none; }
   #sc1 .q::after { content: '|'; color: var(--blue); animation: blink 1s infinite; margin-left: 4px; }
   #sc1 .q.done::after { content: ''; }
-  #sc1 .big { margin-top: 30px; font-size: 40px; font-weight: 700; color: #fff; opacity: 0; transform: scale(.94); transition: opacity .6s, transform .6s; }
-  #sc1 .big b { font-size: 120px; color: #ff6b6b; display: block; line-height: 1.05; margin-top: 6px; letter-spacing: -2px; }
+  #sc1 .q.dim { color: #55606c; }
+  #sc1 .again { position: absolute; left: 140px; top: 44px; font-size: 22px; font-weight: 800; color: #ff6b6b; background: rgba(255,107,107,.12); border: 2px solid rgba(255,107,107,.5); padding: 6px 16px; border-radius: 999px; opacity: 0; transition: opacity .4s; }
+  #sc1 .again.on { opacity: 1; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { transform: scale(1.06); } }
+  #sc1 .big { margin-top: 30px; display: flex; align-items: center; gap: 34px; opacity: 0; transform: scale(.94); transition: opacity .6s, transform .6s; }
   #sc1 .big.on { opacity: 1; transform: none; }
+  #sc1 .big .txt { font-size: 40px; font-weight: 700; color: #fff; }
+  #sc1 .big b { font-size: 120px; color: #ff6b6b; display: block; line-height: 1.05; margin-top: 6px; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+  #sc1 .watch { width: 150px; height: 150px; flex: none; }
+  #sc1 .watch .hand { transform-origin: 75px 82px; animation: spin 2.4s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes blink { 50% { opacity: 0; } }
 
   #sc2 { background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
@@ -47,6 +55,18 @@
   .rise.on { opacity: 1; transform: none; }
   #sc2 h1 { font-size: 66px; margin: 0; color: var(--blue-dark); letter-spacing: -1px; }
   #sc2 p { font-size: 30px; margin: 0; color: var(--sub); font-weight: 700; }
+  #sc2 .logo { animation: floaty 3s ease-in-out infinite; }
+  @keyframes floaty { 50% { transform: translateY(-8px); } }
+  #sc2 .flow { display: flex; align-items: center; gap: 18px; margin-top: 30px; }
+  #sc2 .node { background: #fff; border-radius: 22px; padding: 20px 28px; box-shadow: 0 12px 30px rgba(0,0,0,.09); display: flex; align-items: center; gap: 14px; font-size: 26px; font-weight: 800; color: var(--text); opacity: 0; transform: translateY(22px) scale(.96); transition: opacity .5s, transform .5s; }
+  #sc2 .node .ic { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; background: var(--blue-light); }
+  #sc2 .node.mid { background: var(--blue); color: #fff; } #sc2 .node.mid .ic { background: rgba(255,255,255,.2); }
+  #sc2 .node.on { opacity: 1; transform: none; }
+  #sc2 .arrow { position: relative; width: 90px; height: 24px; opacity: 0; transition: opacity .4s; }
+  #sc2 .arrow.on { opacity: 1; }
+  #sc2 .arrow i { position: absolute; top: 6px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 12px var(--blue); animation: fly2 1s linear infinite; }
+  #sc2 .arrow i:nth-child(2) { animation-delay: .33s; } #sc2 .arrow i:nth-child(3) { animation-delay: .66s; }
+  @keyframes fly2 { 0% { left: 0; opacity: 0; } 25% { opacity: 1; } 100% { left: 78px; opacity: 0; } }
 
   #sc6 { background: transparent; }
   #sc6 .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 300px; background: linear-gradient(180deg, rgba(247,243,236,0) 0%, rgba(247,243,236,.96) 22%, #f7f3ec 100%); display: flex; align-items: flex-end; justify-content: center; gap: 28px; padding-bottom: 96px; }
@@ -111,10 +131,16 @@
 
   <!-- 1. 문제 제기 -->
   <section class="scene" id="sc1">
+    <div class="again" id="again">🔁 다시 처음부터…</div>
     <div class="q" id="q1"></div>
     <div class="q" id="q2"></div>
     <div class="q" id="q3"></div>
-    <div class="big" id="q4">매장에서 고객 한 분의 니즈를 파악하는 데<b>평균 18분</b></div>
+    <div class="big" id="q4">
+      <svg class="watch" viewBox="0 0 150 150"><rect x="62" y="6" width="26" height="14" rx="4" fill="#c9d3de"/><circle cx="75" cy="82" r="60" fill="#1c2430" stroke="#c9d3de" stroke-width="6"/>
+        <g stroke="#7f8b98" stroke-width="4" stroke-linecap="round"><line x1="75" y1="32" x2="75" y2="42"/><line x1="75" y1="122" x2="75" y2="132"/><line x1="25" y1="82" x2="35" y2="82"/><line x1="115" y1="82" x2="125" y2="82"/></g>
+        <line class="hand" x1="75" y1="82" x2="75" y2="38" stroke="#ff6b6b" stroke-width="5" stroke-linecap="round"/><circle cx="75" cy="82" r="6" fill="#ff6b6b"/></svg>
+      <div class="txt">매장에서 고객 한 분의 니즈를 파악하는 데<b>평균 <span id="cnt18">0</span>분</b></div>
+    </div>
   </section>
 
   <!-- 2. 타이틀 -->
@@ -122,6 +148,13 @@
     <div class="logo rise">C</div>
     <h1 class="rise">세라젬 웰라운지 셀프 문진</h1>
     <p class="rise">고객이 직접 고르고, 매니저는 바로 응대합니다</p>
+    <div class="flow">
+      <div class="node"><span class="ic">📱</span>고객이 직접 선택</div>
+      <div class="arrow"><i></i><i></i><i></i></div>
+      <div class="node mid"><span class="ic">⚡</span>실시간 전달</div>
+      <div class="arrow"><i></i><i></i><i></i></div>
+      <div class="node"><span class="ic">🧑‍💼</span>매니저 응대카드</div>
+    </div>
   </section>
 
   <!-- 6. 효과 수치 (고객 결과 화면 위에 겹침) -->
@@ -311,15 +344,27 @@ const SCENES = [
     narr: '매장을 찾은 고객에게, 매니저는 같은 질문을 처음부터 다시 묻습니다. 워크인 고객 한 분의 니즈를 파악하는 데만 평균 18분.',
     async run(t) {
       showScene('sc1'); place(devCust, POS.hidden); place(devMgr, POS.mgrHidden);
-      ['q1', 'q2', 'q3'].forEach(id => { $(id).textContent = ''; $(id).classList.remove('on', 'done'); }); $('q4').classList.remove('on');
       const lines = [['q1', '"어디가 불편하세요?"'], ['q2', '"언제부터 그러셨어요?"'], ['q3', '"어떤 제품 보러 오셨어요?"']];
-      await step(t, 400);
-      for (const [id, text] of lines) {
-        const el = $(id); el.classList.add('on');
-        for (let i = 1; i <= text.length; i++) { el.textContent = text.slice(0, i); await step(t, 38); }
-        el.classList.add('done'); await step(t, 420);
-      }
-      await step(t, 300); $('q4').classList.add('on');
+      const reset = () => ['q1', 'q2', 'q3'].forEach(id => { $(id).textContent = ''; $(id).classList.remove('on', 'done', 'dim'); });
+      reset(); $('q4').classList.remove('on'); $('again').classList.remove('on'); $('cnt18').textContent = '0';
+      const typeAll = async (speed) => {
+        for (const [id, text] of lines) {
+          const el = $(id); el.classList.add('on');
+          for (let i = 1; i <= text.length; i++) { el.textContent = text.slice(0, i); await step(t, speed); }
+          el.classList.add('done'); await step(t, speed * 8);
+        }
+      };
+      await step(t, 300); await typeAll(34);
+      $('q4').classList.add('on'); countTo($('cnt18'), 0, 18, 2200, 0);          // 스톱워치 + 0 → 18분
+      await step(t, 1800);
+      // 나레이션이 끝날 때까지: "다시 처음부터" 질문이 반복해서 타이핑됨 (장면이 바뀌면 멈춤)
+      const seq = sceneSeq;
+      (async () => { try {
+        while (alive(t) && seq === sceneSeq) {
+          ['q1', 'q2', 'q3'].forEach(id => $(id).classList.add('dim')); $('again').classList.add('on');
+          await step(t, 700); if (seq !== sceneSeq) break; reset(); await typeAll(24); await step(t, 500);
+        }
+      } catch (e) {} })();
     },
   },
   { /* 2. 타이틀 */
@@ -328,7 +373,10 @@ const SCENES = [
     async run(t) {
       showScene('sc2');
       const els = document.querySelectorAll('#sc2 .rise'); els.forEach(e => e.classList.remove('on'));
+      const flow = document.querySelectorAll('#sc2 .flow > *'); flow.forEach(e => e.classList.remove('on'));
       for (const e of els) { await step(t, 250); e.classList.add('on'); }
+      await step(t, 700);
+      for (const e of flow) { e.classList.add('on'); await step(t, e.classList.contains('arrow') ? 450 : 650); }   // 고객 → 전달 → 매니저 흐름
     },
   },
   { /* 3. 고객 화면 */
@@ -428,7 +476,7 @@ function findPromoCard() {
 /* ============================================================
    재생 엔진
    ============================================================ */
-let current = -1, playing = false;
+let current = -1, playing = false, sceneSeq = 0;   // sceneSeq: 장면이 바뀔 때마다 증가 → 반복 애니메이션 종료용
 const bar = $('scenebar');
 SCENES.forEach(() => { const i = document.createElement('i'); i.innerHTML = '<b></b>'; bar.appendChild(i); });
 
@@ -441,7 +489,7 @@ async function playFrom(idx) {
   await fastForwardCust(idx + 1); if (!alive(t)) return;
   playing = true;
   for (let i = idx; i < SCENES.length; i++) {
-    current = i;
+    current = i; sceneSeq++;
     [...bar.children].forEach((el, k) => { el.classList.toggle('done', k < i); el.firstChild.style.transition = 'none'; el.firstChild.style.width = k < i ? '100%' : '0'; });
     const sc = SCENES[i], t0 = performance.now();
     subtitle(sc.sub);
