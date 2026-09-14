@@ -4,7 +4,7 @@
    ============================================================ */
 
 /* ---------- 상태 ---------- */
-/* 기본은 data.js 의 시연용 mock 고객 + 고객 태블릿에서 실시간으로 들어오는 문진을 함께 표시.
+/* 기본은 data.js 의 시연용 mock 고객 + 고객 화면에서 실시간으로 들어오는 문진을 함께 표시.
    mock 고객은 _mock 표시로 구분되며 DB 에는 반영되지 않음. 주소 뒤에 ?mock=0 을 붙이면 실시간 문진만 표시 */
 const USE_MOCK = new URLSearchParams(location.search).get('mock') !== '0';
 const AUTO_SIM = USE_MOCK && new URLSearchParams(location.search).get('sim') !== '0';   // ?sim=0 → 25초 뒤 자동 도착 끔 (홍보영상용)
@@ -290,7 +290,7 @@ function startServing(id) {
   if (!c) return;
   c.status = 'serving';
   state.stats.served += 1;
-  if (!c._mock) setQueueStatus(id, 'serving');      // 고객 태블릿에 "담당 매니저 배정" 안내가 바로 뜸
+  if (!c._mock) setQueueStatus(id, 'serving');      // 고객 화면에 "담당 매니저 배정" 안내가 바로 뜸
   toast(`${c.no}번 고객 응대 시작`);
   renderDetail();
 }
@@ -352,7 +352,7 @@ setInterval(() => { if (state.view === 'queue') renderQueue(); }, 30000);   // �
 if (AUTO_SIM) setTimeout(simulateArrival, 25000);                            // mock 모드: 25초 뒤 새 고객 1명 자동 추가
 
 /* ============================================================
-   실시간 대기열 (live.js) — 고객 태블릿 문진이 들어오면 바로 카드 생성
+   실시간 대기열 (live.js) — 고객 화면 문진이 들어오면 바로 카드 생성
    ============================================================ */
 function setConnStatus(ok) {
   state.connected = ok;

@@ -1,6 +1,6 @@
 /* ============================================================
    매니저 대시보드 — 실시간 대기열 연결 (live.js)
-   · 고객 문진 태블릿(js/handoff.js)이 Firebase Realtime Database 에 올린
+   · 고객 문진 화면(js/handoff.js)이 Firebase Realtime Database 에 올린
      문진을 실시간으로 받아 응대카드로 만듦
    · FIREBASE_CONFIG 는 고객용 js/handoff.js 와 동일하게 유지
    · 연결이 안 되면 상단에 "연결 안 됨" 표시, 화면은 비어 있는 대기열로 동작
