@@ -293,7 +293,7 @@ GitHub Pages 처럼 서버가 없는 곳에 배포해도 동작하도록, 두 �
 `docs/홍보영상_대본.md` 의 60초 구성을 그대로 재생하는 웹 페이지. 고객용·매니저용 **실제 화면을 iframe 으로 띄워 자동 조작**하므로
 반드시 서버를 통해 열어야 함 (`실행.bat` → `http://localhost:8000/promo/`, 또는 GitHub Pages 의 `/promo/`).
 
-- 시작 화면에서 나레이션(브라우저 한국어 음성) · 배경음악(`bgm.mp3`) · 실제 Firebase 연동 여부 선택 → `▶ 시작`
+- 시작 화면에서 나레이션(브라우저 한국어 음성) · 배경음악(`bgm.mp3`) · 실제 Firebase 연동 여부 선택 → `▶ 재생`. 글꼴은 Pretendard(CDN), 오프라인이면 시스템 글꼴
 - 조작: `Space` 시작 · `←` `→` 장면 이동 · `R` 처음부터 · `F` 전체화면
 - 주소 옵션: `?autostart=1` 바로 재생 · `?voice=0` 음성 끔 · `?bgm=0` 음악 끔 · `?live=1` 실제 Firebase 사용
 - **MP4 로 만들기**: `F` 전체화면 → `Win + Alt + R` (Xbox Game Bar 녹화) → `▶ 시작` → 끝나면 `Win + Alt + R` 로 종료.
