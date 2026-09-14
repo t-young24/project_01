@@ -45,14 +45,53 @@ function badges(c) {
     ${c.measured ? '<span class="badge measured">✓ 측정 완료</span>' : '<span class="badge unmeasured">측정 전</span>'}
     ${c.status === 'serving' ? '<span class="badge serving">응대 중</span>' : ''}`;
 }
-/* 우선순위 정렬: 인원 많은 팀 → 오래 기다린 순. 응대 중인 고객은 맨 아래 */
+/* ---------- 정렬 · 필터 ----------
+   정렬: priority 오래 기다린 순(우선순위) · newest 최신 문진 순 · no 대기번호 순
+   필터: all 전체 · consult 상담 희망 · return 재방문 · walkin 워크인 · reserved 예약 · serving 응대 중
+   응대 중인 고객은 어떤 정렬이든 맨 아래 (응대 중 필터 제외)                        */
+const SORTS = [
+  { key: 'priority', label: '⏱ 오래 기다린 순' },
+  { key: 'newest',   label: '🆕 최신 문진 순' },
+  { key: 'no',       label: '🔢 대기번호 순' },
+];
+const FILTERS = [
+  { key: 'all',      label: '전체' },
+  { key: 'consult',  label: '💬 상담 희망' },
+  { key: 'return',   label: '🔁 재방문' },
+  { key: 'walkin',   label: '🚶 워크인' },
+  { key: 'reserved', label: '📅 예약' },
+  { key: 'serving',  label: '응대 중' },
+];
+const queueOpt = { sort: 'priority', filter: 'all' };
+function setSort(k) { queueOpt.sort = k; renderQueue(); }
+function setFilter(k) { queueOpt.filter = k; renderQueue(); }
+function matchFilter(c) {
+  switch (queueOpt.filter) {
+    case 'consult':  return wantsConsult(c);
+    case 'return':   return c.visit === 'return';
+    case 'walkin':   return c.type === 'walkin';
+    case 'reserved': return c.type === 'reserved';
+    case 'serving':  return c.status === 'serving';
+    default:         return true;
+  }
+}
 function sortedQueue() {
-  return [...state.customers].sort((a, b) => {
-    if (a.status !== b.status) return a.status === 'serving' ? 1 : -1;
+  return state.customers.filter(matchFilter).sort((a, b) => {
+    if (queueOpt.filter !== 'serving' && a.status !== b.status) return a.status === 'serving' ? 1 : -1;
+    if (queueOpt.sort === 'newest') return b.doneAt - a.doneAt;
+    if (queueOpt.sort === 'no') return Number(a.no) - Number(b.no);
     const pd = priority(b) - priority(a);
     if (pd !== 0) return pd;
     return a.doneAt - b.doneAt;
   });
+}
+function renderQueueTools() {
+  const count = k => state.customers.filter(c => { const keep = queueOpt.filter; queueOpt.filter = k; const ok = matchFilter(c); queueOpt.filter = keep; return ok; }).length;
+  document.getElementById('queueTools').innerHTML = `
+    <div class="tool-group"><span class="tool-label">정렬</span>${SORTS.map(o =>
+      `<button class="chip-btn ${queueOpt.sort === o.key ? 'on' : ''}" onclick="setSort('${o.key}')">${o.label}</button>`).join('')}</div>
+    <div class="tool-group"><span class="tool-label">보기</span>${FILTERS.map(o =>
+      `<button class="chip-btn ${queueOpt.filter === o.key ? 'on' : ''}" onclick="setFilter('${o.key}')">${o.label}<small>${count(o.key)}</small></button>`).join('')}</div>`;
 }
 
 /* ---------- 화면 전환 ---------- */
@@ -70,7 +109,7 @@ function showView(v) {
    ============================================================ */
 function renderQueue() {
   const list = sortedQueue();
-  const waiting = list.filter(c => c.status === 'waiting');
+  const waiting = state.customers.filter(c => c.status === 'waiting');   // 상단 요약은 필터와 무관하게 전체 기준
   const walkin = waiting.filter(c => c.type === 'walkin').length;
   const avgWait = waiting.length ? Math.round(waiting.reduce((s, c) => s + waitMin(c), 0) / waiting.length) : 0;
   const longest = waiting.length ? Math.max(...waiting.map(waitMin)) : 0;
@@ -85,8 +124,12 @@ function renderQueue() {
     <div class="sum-card"><span class="k">평균 대기</span><span class="v">${avgWait}<small>분</small></span></div>
     <div class="sum-card ${consultOnly ? 'consult' : ''}"><span class="k">💬 상담 희망</span><span class="v">${consult}<small>명 · 상담만 ${consultOnly}</small></span></div>`;
 
+  renderQueueTools();
   const el = document.getElementById('queueList');
-  if (!list.length) { el.innerHTML = '<div class="empty">대기 중인 고객이 없어요</div>'; return; }
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">${queueOpt.filter === 'all' ? '대기 중인 고객이 없어요' : '이 조건에 맞는 고객이 없어요'}</div>`;
+    return;
+  }
   el.innerHTML = list.map(c => {
     const p = priority(c), w = waitMin(c);
     const wcls = w >= 10 ? 'long' : w >= 5 ? 'mid' : '';
@@ -147,7 +190,7 @@ function gaugeRows(m) {
     </div>`).join('');
 }
 function renderDetail() {
-  const c = state.customers.find(x => x.id === state.selectedId);
+  const c = state.customers.find(x => String(x.id) === String(state.selectedId));
   if (!c) return;
   const p = priority(c);
 
@@ -242,7 +285,7 @@ function renderDetail() {
     </div>`;
 }
 function startServing(id) {
-  const c = state.customers.find(x => x.id === id);
+  const c = state.customers.find(x => String(x.id) === String(id));
   if (!c) return;
   c.status = 'serving';
   state.stats.served += 1;
@@ -251,10 +294,10 @@ function startServing(id) {
   renderDetail();
 }
 function finishGuide(id) {
-  const c = state.customers.find(x => x.id === id);
+  const c = state.customers.find(x => String(x.id) === String(id));
   if (!c) return;
   if (!isConsultOnly(c)) state.stats.guided += 1;   // 상담만 한 고객은 체험 안내 횟수에 넣지 않음
-  state.customers = state.customers.filter(x => x.id !== id);
+  state.customers = state.customers.filter(x => String(x.id) !== String(id));
   if (!c._mock) {
     setQueueStatus(id, 'done');
     const what = isConsultOnly(c) ? '구매/구독 상담 진행' : `${c.zones.map(k => ZONES[k].name).join('·')} 체험 안내 완료`;
@@ -333,7 +376,7 @@ function onLiveQueue(list) {
   arrived.forEach(c => toast(`🔔 ${c.no}번 고객 문진 완료 — ${TYPE_LABEL[c.type]} · ${VISIT_LABEL[c.visit]}`));
   if (state.view === 'queue') renderQueue();
   else if (state.view === 'detail') {
-    if (state.customers.some(c => c.id === state.selectedId)) renderDetail(); else showView('queue');
+    if (state.customers.some(c => String(c.id) === String(state.selectedId))) renderDetail(); else showView('queue');
   }
   document.getElementById('queueCount').textContent = state.customers.filter(x => x.status === 'waiting').length;
 }
