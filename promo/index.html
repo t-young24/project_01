@@ -39,6 +39,12 @@
   .device .tag::before { content: ''; width: .45em; height: .45em; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px #4ade80; }
   .device.show-tag .tag { opacity: 1; }
   #devMgr { z-index: 2; } #devCust { z-index: 3; }
+  /* 휴대폰 프레임 (390×844 세로 화면) — 3장면에서 "휴대폰에서는 이렇게" */
+  .device.phone-dev { width: 390px; height: 844px; z-index: 4; }
+  .device.phone-dev .shell { width: 390px; height: 844px; border-radius: 44px; box-shadow: 0 30px 70px rgba(20,30,45,.3), 0 0 0 10px #171d26, 0 0 0 12px #2c3644, 0 0 0 13px rgba(255,255,255,.08); }
+  .device.phone-dev iframe { width: 390px; height: 844px; }
+  .device.phone-dev .notch { position: absolute; left: 50%; top: 10px; width: 120px; height: 28px; margin-left: -60px; border-radius: 999px; background: #0b0f14; z-index: 2; }
+  .device.phone-dev .tag { top: -2.8em; }
 
   /* ---------- 공통 타이포 ---------- */
   .kicker { display: inline-flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--blue); text-transform: uppercase; }
@@ -223,6 +229,7 @@
   <!-- 실제 앱 (같은 서버에서 열려야 iframe 내부 조작 가능) -->
   <div class="device" id="devCust"><div class="tag">고객 화면</div><div class="shell"><iframe id="ifCust" title="고객용 화면"></iframe><div class="gloss"></div></div></div>
   <div class="device" id="devMgr"><div class="tag">매니저 화면</div><div class="shell"><iframe id="ifMgr" title="매니저용 화면"></iframe><div class="gloss"></div></div></div>
+  <div class="device phone-dev" id="devPhone"><div class="tag">휴대폰에서는</div><div class="shell"><iframe id="ifPhone" title="고객용 화면 (휴대폰)"></iframe><div class="gloss"></div></div></div>
 
   <!-- 1. 문제 제기 -->
   <section class="scene" id="sc1">
@@ -294,7 +301,7 @@
     <h2>세라젬 웰라운지 셀프 문진</h2>
     <p>실제 고객용 · 매니저용 화면을 자동으로 시연</p>
     <label><input type="checkbox" id="optVoice" checked> 나레이션</label>
-    <label id="optMp3Row" hidden><input type="checkbox" id="optMp3" checked> mp3 나레이션 (voice/narration.mp3 · 문장별 큐 재생)</label>
+    <label id="optMp3Row" hidden><input type="checkbox" id="optMp3" checked> mp3 나레이션</label>
     <label id="optTtsRow" hidden>브라우저 음성(비활성)
       <select id="optVoiceName" title="브라우저 음성 선택"><option value="">자동 (한국어 음성)</option></select>
       <button type="button" id="btnTest" title="선택한 음성 미리 듣기">🔊 미리 듣기</button>
@@ -344,6 +351,10 @@ const POS = MOBILE ? {
   custPip:   { x: 418, y: 1060, s: 0.22, o: 1 },
   custPipBig:{ x: 104, y: 660,  s: 0.40, o: 1 },
   mgrHidden: { x: 40,  y: 1300, s: 0.50, o: 0 },
+  // 3장면: 태블릿 위 · 휴대폰 아래 가운데
+  cust3:     { x: 21,  y: 120,  s: 0.53, o: 1 },
+  phone3:    { x: 243, y: 610,  s: 0.60, o: 1 },
+  phoneHidden:{ x: 243, y: 1300, s: 0.60, o: 0 },
 } : {
   hidden:    { x: 166, y: 780, s: 0.74, o: 0 },
   custFull:  { x: 166, y: 88,  s: 0.74, o: 1 },
@@ -353,6 +364,10 @@ const POS = MOBILE ? {
   custPip:   { x: 1010, y: 540, s: 0.20, o: 1 },
   custPipBig:{ x: 700, y: 290, s: 0.42, o: 1 },
   mgrHidden: { x: 681, y: 780, s: 0.46, o: 0 },
+  // 3장면: 태블릿 왼쪽 크게 · 휴대폰 오른쪽 작게
+  cust3:     { x: 40,  y: 110, s: 0.66, o: 1 },
+  phone3:    { x: 955, y: 150, s: 0.56, o: 1 },
+  phoneHidden:{ x: 955, y: 780, s: 0.56, o: 0 },
 };
 
 /* ============================================================
@@ -567,7 +582,10 @@ function countTo(el, from, to, ms, fixed) {
    실제 앱 제어
    ============================================================ */
 const devCust = $('devCust'), devMgr = $('devMgr'), ifCust = $('ifCust'), ifMgr = $('ifMgr');
-let W1 = null, W2 = null;               // iframe window
+const devPhone = $('devPhone'), ifPhone = $('ifPhone');
+let W1 = null, W2 = null, W3 = null;    // iframe window (W3: 휴대폰 화면 — 3장면에서 태블릿과 같은 동작을 그대로 따라함)
+/* 태블릿(W1)에서 한 동작을 휴대폰(W3)에도 똑같이 — 휴대폰 쪽 오류는 영상 진행에 영향 없게 무시 */
+function mirror(fn) { fn(W1); if (W3) { try { fn(W3); } catch (e) {} } }
 let custWatchCb = null;                  // 고객 화면이 등록한 "내 문진 상태" 콜백 (라이브 OFF 시 직접 호출)
 const LIVE = () => $('optLive').checked;
 
@@ -579,9 +597,11 @@ function loadFrame(ifr, url) {
 }
 async function loadApps() {
   const mgrUrl = LIVE() ? MGR_URL : MGR_URL + '&live=0';
-  [W1, W2] = await Promise.all([loadFrame(ifCust, CUST_URL), loadFrame(ifMgr, mgrUrl)]);
+  [W1, W2, W3] = await Promise.all([loadFrame(ifCust, CUST_URL), loadFrame(ifMgr, mgrUrl), loadFrame(ifPhone, CUST_URL + '&promo_phone=1')]);
   // 고객 화면: 앱 자체 음성은 끄고(나레이션과 겹침) 콜백만 즉시 실행
   W1.speak = (text, onEnd) => { if (typeof onEnd === 'function') setTimeout(onEnd, 300); };
+  W3.speak = W1.speak; W3.sendHandoff = async () => null; W3.watchHandoff = () => {}; W3.stopHandoffWatch = () => {}; W3.sendRecall = () => {};
+  place(devPhone, POS.phoneHidden);
   if (!LIVE()) {
     W1.sendHandoff = async () => ({ no: String(PROMO_CARD.no), key: PROMO_CARD.id });
     W1.watchHandoff = (key, cb) => { custWatchCb = cb; };
@@ -673,35 +693,36 @@ const SCENES = [
     min: 22000, sub: '큰 글씨 · 큰 버튼 · <b>한 화면에 할 일 하나</b>',
     narr: ['60대 이상 고객도 어렵지 않게.', { text: '큰 글씨, 큰 버튼, 그리고 화면마다 할 일은 하나뿐입니다.', pause: 2800 }, '불편한 부위를 누르고 강도를 고르면,', '딱 맞는 체험존을 추천해 드립니다.'],
     async run(t) {
-      showScene(null); place(devCust, POS.custFull, true); place(devMgr, POS.mgrHidden);
+      showScene(null); place(devCust, POS.cust3, true); place(devMgr, POS.mgrHidden); place(devPhone, POS.phone3, true);   // 태블릿 + 휴대폰 나란히
       await step(t, 1500);
       callout(devCust, ifCust, '#s1 .btn-primary', 1, '터치 한 번으로 시작', 'right');
-      await tap(devCust, ifCust, '#s1 .btn-primary', t, 900); W1.startSurvey(); clearCallouts(); await step(t, 1300);
-      await tap(devCust, ifCust, '.visit-card[data-visit="walkin"]', t, 900); W1.chooseVisit('walkin'); await step(t, 1300);
+      await tap(devCust, ifCust, '#s1 .btn-primary', t, 900); mirror(w => w.startSurvey()); clearCallouts(); await step(t, 1300);
+      await tap(devCust, ifCust, '.visit-card[data-visit="walkin"]', t, 900); mirror(w => w.chooseVisit('walkin')); await step(t, 1300);
       callout(devCust, ifCust, '.keypad', 2, '숫자만 있는 큰 키패드', 'right');
       await tap(devCust, ifCust, '.key', t, 500);
-      for (const k of '01012344821') { W1.phoneKey(k); await step(t, 110); }
+      for (const k of '01012344821') { mirror(w => w.phoneKey(k)); await step(t, 110); }
       await step(t, 400); clearCallouts();
-      await tap(devCust, ifCust, '#phoneAgree', t, 500); W1.document.getElementById('phoneAgree').checked = true; W1.renderPhone(); await step(t, 400);
-      await tap(devCust, ifCust, '#btnS3Next', t, 600); W1.finishPhone(); await step(t, 1200);
-      await tap(devCust, ifCust, '.purpose-card[data-purpose="experience"]', t, 900); W1.choosePurpose('experience'); await step(t, 1500);
+      await tap(devCust, ifCust, '#phoneAgree', t, 500); mirror(w => { w.document.getElementById('phoneAgree').checked = true; w.renderPhone(); }); await step(t, 400);
+      await tap(devCust, ifCust, '#btnS3Next', t, 600); mirror(w => w.finishPhone()); await step(t, 1200);
+      await tap(devCust, ifCust, '.purpose-card[data-purpose="experience"]', t, 900); mirror(w => w.choosePurpose('experience')); await step(t, 1500);
       cue(t, 1);                                                                        // "불편한 부위를 누르고 강도를 고르면…" 문장 시작
       callout(devCust, ifCust, '.part[data-id="waist"]', 3, '불편한 부위를 누르고', 'left');
-      await tap(devCust, ifCust, '.part[data-id="waist"]', t, 900); W1.onPartTap('waist', '허리'); await step(t, 900);
+      await tap(devCust, ifCust, '.part[data-id="waist"]', t, 900); mirror(w => w.onPartTap('waist', '허리')); await step(t, 900);
       callout(devCust, ifCust, '.lv-btn[data-lv="3"]', 4, '강도를 고르면', 'bottom');
-      await tap(devCust, ifCust, '.lv-btn[data-lv="3"]', t, 900); W1.setIntensity(3); await step(t, 1000); clearCallouts();
-      await tap(devCust, ifCust, '.part[data-id="knee-l"]', t, 800); W1.onPartTap('knee-l', '무릎'); await step(t, 800);
-      await tap(devCust, ifCust, '.lv-btn[data-lv="2"]', t, 800); W1.setIntensity(2); await step(t, 1000);
-      await tap(devCust, ifCust, '#btnS4Next', t, 800); W1.finishBody(); hideFinger(); await step(t, 1300);
+      await tap(devCust, ifCust, '.lv-btn[data-lv="3"]', t, 900); mirror(w => w.setIntensity(3)); await step(t, 1000); clearCallouts();
+      await tap(devCust, ifCust, '.part[data-id="knee-l"]', t, 800); mirror(w => w.onPartTap('knee-l', '무릎')); await step(t, 800);
+      await tap(devCust, ifCust, '.lv-btn[data-lv="2"]', t, 800); mirror(w => w.setIntensity(2)); await step(t, 1000);
+      await tap(devCust, ifCust, '#btnS4Next', t, 800); mirror(w => w.finishBody()); hideFinger(); await step(t, 1300);
       highlight(devCust, ifCust, '#zoneTop'); callout(devCust, ifCust, '#zoneTop', 5, '딱 맞는 체험존을 자동 추천', 'bottom', 34);
       await step(t, 2600); unhighlight(); clearCallouts();
+      place(devPhone, POS.phoneHidden);                                                // 휴대폰은 여기까지
     },
   },
   { /* 4. ★ 실시간 전달 (화면 분할) */
     min: 11000, sub: '선택 완료 → <b>1초 만에</b> 매니저 화면으로',
     narr: [{ text: '고객이 선택을 마치는 순간,', pause: 1200 }, '매니저 화면에 응대카드가 도착합니다.'],
     async run(t) {
-      showScene(null); place(devCust, POS.custSplit, true); place(devMgr, POS.mgrSplit, true);
+      showScene(null); place(devCust, POS.custSplit, true); place(devMgr, POS.mgrSplit, true); place(devPhone, POS.phoneHidden);
       await step(t, 1500);
       await tap(devCust, ifCust, '[data-zone="spine"]', t, 800); W1.document.querySelector('[data-zone="spine"]').click(); await step(t, 900);
       await tap(devCust, ifCust, '#btnS5Next', t, 800); hideFinger();
