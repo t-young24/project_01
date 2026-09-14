@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세라젬 웰라운지 셀프 문진 — 홍보영상</title>
+<!--
+  웹 모션 홍보영상 (docs/홍보영상_대본.md 기준 · 60초)
+  · 실제 고객용 / 매니저용 화면을 iframe 으로 띄워 자동 조작 → 같은 서버(로컬 server.py 또는 GitHub Pages)에서 열어야 함
+  · 나레이션: 브라우저 한국어 음성(SpeechSynthesis) / 배경음악: ../bgm.mp3
+  · 조작: Space 시작 · ← → 장면 이동 · R 처음부터 · F 전체화면
+  · 녹화: 전체화면(F) 후 Win+Alt+R (Xbox Game Bar) → MP4
+-->
+<style>
+  :root { --bg: #f7f3ec; --soft: #efe8dc; --blue: #2f6db5; --blue-dark: #235391; --blue-light: #e4eef9; --text: #22303f; --sub: #5b6875; --red: #d64545; --green: #3aa76d; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0f1319; overflow: hidden; font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: var(--text); }
+  #wrap { position: absolute; inset: 0; display: grid; place-items: center; }
+  #stage { width: 1280px; height: 720px; position: relative; overflow: hidden; background: var(--bg); transform-origin: center center; box-shadow: 0 20px 80px rgba(0,0,0,0.5); }
+
+  /* ---------- 기기 프레임 (iframe) — 장면 간 위치/크기를 CSS transform 으로 이동 ---------- */
+  .device { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: top left; opacity: 0;
+            transition: transform 0.9s cubic-bezier(.2,.8,.2,1), opacity 0.6s; }
+  .device .shell { width: 1280px; height: 800px; border-radius: 22px; overflow: hidden; background: #fff;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.22), 0 0 0 10px #1c2430, 0 0 0 12px #3a4656; }
+  .device iframe { width: 1280px; height: 800px; border: 0; display: block; pointer-events: none; }
+  .device .tag { position: absolute; left: 50%; top: -2.3em; transform: translateX(-50%); background: #1c2430; color: #fff; font-weight: 800; font-size: 30px; padding: .28em 1em; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity .4s; }
+  .device.show-tag .tag { opacity: 1; }
+  #devMgr { z-index: 2; } #devCust { z-index: 3; }
+
+  /* ---------- 오버레이 장면 ---------- */
+  .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s; pointer-events: none; z-index: 5; }
+  .scene.on { opacity: 1; }
+  #sc1 { background: #0f1319; color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 0 140px; gap: 26px; }
+  #sc1 .q { font-size: 44px; font-weight: 700; color: #c9d3de; opacity: 0; transform: translateY(12px); transition: opacity .5s, transform .5s; min-height: 58px; }
+  #sc1 .q.on { opacity: 1; transform: none; }
+  #sc1 .q::after { content: '|'; color: var(--blue); animation: blink 1s infinite; margin-left: 4px; }
+  #sc1 .q.done::after { content: ''; }
+  #sc1 .big { margin-top: 30px; font-size: 40px; font-weight: 700; color: #fff; opacity: 0; transform: scale(.94); transition: opacity .6s, transform .6s; }
+  #sc1 .big b { font-size: 120px; color: #ff6b6b; display: block; line-height: 1.05; margin-top: 6px; letter-spacing: -2px; }
+  #sc1 .big.on { opacity: 1; transform: none; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #sc2 { background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+  .logo { width: 84px; height: 84px; border-radius: 26px; background: var(--blue); color: #fff; font-size: 44px; font-weight: 900; display: grid; place-items: center; box-shadow: 0 10px 30px rgba(47,109,181,.35); }
+  .rise { opacity: 0; transform: translateY(24px); transition: opacity .8s, transform .8s; }
+  .rise.on { opacity: 1; transform: none; }
+  #sc2 h1 { font-size: 66px; margin: 0; color: var(--blue-dark); letter-spacing: -1px; }
+  #sc2 p { font-size: 30px; margin: 0; color: var(--sub); font-weight: 700; }
+
+  #sc6 { background: transparent; }
+  #sc6 .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 300px; background: linear-gradient(180deg, rgba(247,243,236,0) 0%, rgba(247,243,236,.96) 22%, #f7f3ec 100%); display: flex; align-items: flex-end; justify-content: center; gap: 28px; padding-bottom: 96px; }
+  .stat { width: 350px; background: #fff; border-radius: 22px; padding: 22px 26px; box-shadow: 0 12px 34px rgba(0,0,0,.10); opacity: 0; transform: translateY(40px); transition: opacity .6s, transform .6s; }
+  .stat.on { opacity: 1; transform: none; }
+  .stat .k { font-size: 18px; font-weight: 800; color: var(--sub); }
+  .stat .v { font-size: 46px; font-weight: 900; color: var(--blue-dark); margin-top: 6px; line-height: 1.1; letter-spacing: -1px; }
+  .stat .v small { font-size: 22px; color: var(--sub); font-weight: 800; }
+  .stat .v .from { color: #9aa5b1; text-decoration: line-through; font-size: 30px; margin-right: 10px; }
+  .stat .v.up { color: var(--green); }
+  .stat .d { font-size: 16px; color: var(--sub); margin-top: 6px; font-weight: 700; }
+
+  #sc7 { background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+  #sc7 h1 { font-size: 64px; margin: 0; color: var(--text); letter-spacing: -1px; }
+  #sc7 h1 b { color: var(--blue); }
+  #sc7 p { font-size: 24px; color: var(--sub); margin: 0; font-weight: 700; }
+
+  /* ---------- 자막 ---------- */
+  #sub { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px); z-index: 20; background: rgba(15,19,25,.82); color: #fff; font-size: 30px; font-weight: 800; padding: 14px 34px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity .4s, transform .4s; letter-spacing: -.3px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+  #sub.on { opacity: 1; transform: translateX(-50%); }
+  #sub b { color: #ffd166; }
+
+  /* ---------- 터치 포인터 · 하이라이트 · 전달 화살표 ---------- */
+  #ripple { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 5px solid var(--blue); background: rgba(47,109,181,.25); z-index: 15; opacity: 0; pointer-events: none; }
+  #ripple.go { animation: rip .7s ease-out; }
+  @keyframes rip { 0% { opacity: 1; transform: scale(.4); } 100% { opacity: 0; transform: scale(1.8); } }
+  #finger { position: absolute; z-index: 16; font-size: 54px; margin: -14px 0 0 -10px; opacity: 0; transition: left .45s cubic-bezier(.2,.8,.2,1), top .45s cubic-bezier(.2,.8,.2,1), opacity .3s; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+  #finger.on { opacity: 1; }
+  #hl { position: absolute; z-index: 14; border: 5px solid var(--blue); border-radius: 16px; box-shadow: 0 0 0 4000px rgba(20,30,45,.35); opacity: 0; transition: left .5s, top .5s, width .5s, height .5s, opacity .4s; pointer-events: none; }
+  #hl.on { opacity: 1; }
+  #beam { position: absolute; z-index: 15; left: 600px; top: 330px; width: 80px; height: 60px; opacity: 0; transition: opacity .3s; }
+  #beam.on { opacity: 1; }
+  #beam .dot { position: absolute; top: 24px; left: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 18px var(--blue); animation: fly 0.9s linear infinite; }
+  #beam .dot:nth-child(2) { animation-delay: .3s; } #beam .dot:nth-child(3) { animation-delay: .6s; }
+  @keyframes fly { 0% { left: 0; opacity: 0; } 20% { opacity: 1; } 100% { left: 70px; opacity: 0; } }
+  #beam .lbl { position: absolute; top: -34px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-weight: 900; color: var(--blue-dark); font-size: 22px; }
+
+  /* ---------- 시작 화면 · 컨트롤 ---------- */
+  #gate { position: absolute; inset: 0; z-index: 50; background: rgba(15,19,25,.92); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+  #gate h2 { margin: 0; font-size: 40px; }
+  #gate p { margin: 0; color: #aab4c0; font-size: 20px; }
+  #gate label { font-size: 18px; color: #dfe6ee; display: flex; gap: 8px; align-items: center; }
+  #gate button { font: inherit; font-size: 28px; font-weight: 900; padding: 18px 52px; border-radius: 999px; border: 0; background: var(--blue); color: #fff; cursor: pointer; margin-top: 10px; box-shadow: 0 10px 30px rgba(47,109,181,.4); }
+  #gate .keys { margin-top: 18px; font-size: 15px; color: #8d99a6; }
+  #gate kbd { background: #2a3442; padding: 2px 8px; border-radius: 6px; font-family: inherit; }
+  #gate.hide { display: none; }
+  #scenebar { position: absolute; left: 0; right: 0; top: 0; height: 6px; z-index: 30; display: flex; gap: 3px; padding: 0 3px; opacity: .9; }
+  #scenebar i { flex: 1; background: rgba(0,0,0,.15); border-radius: 3px; overflow: hidden; }
+  #scenebar i b { display: block; height: 100%; width: 0; background: var(--blue); }
+  #scenebar i.done b { width: 100%; }
+  #endhint { position: absolute; right: 22px; bottom: 22px; z-index: 40; background: rgba(15,19,25,.8); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 800; opacity: 0; transition: opacity .5s; }
+  #endhint.on { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="stage">
+
+  <!-- 실제 앱 (같은 서버에서 열려야 iframe 내부 조작 가능) -->
+  <div class="device" id="devCust"><div class="tag">고객 태블릿</div><div class="shell"><iframe id="ifCust" title="고객용 화면"></iframe></div></div>
+  <div class="device" id="devMgr"><div class="tag">매니저 태블릿</div><div class="shell"><iframe id="ifMgr" title="매니저용 화면"></iframe></div></div>
+
+  <!-- 1. 문제 제기 -->
+  <section class="scene" id="sc1">
+    <div class="q" id="q1"></div>
+    <div class="q" id="q2"></div>
+    <div class="q" id="q3"></div>
+    <div class="big" id="q4">매장에서 고객 한 분의 니즈를 파악하는 데<b>평균 18분</b></div>
+  </section>
+
+  <!-- 2. 타이틀 -->
+  <section class="scene" id="sc2">
+    <div class="logo rise">C</div>
+    <h1 class="rise">세라젬 웰라운지 셀프 문진</h1>
+    <p class="rise">고객이 직접 고르고, 매니저는 바로 응대합니다</p>
+  </section>
+
+  <!-- 6. 효과 수치 (고객 결과 화면 위에 겹침) -->
+  <section class="scene" id="sc6">
+    <div class="panel">
+      <div class="stat"><div class="k">니즈 파악 평균 소요시간</div><div class="v"><span class="from">15.9분</span><span id="cnt1">15.9</span><small>분</small></div><div class="d">시연 데이터 기준 · 절반 이하로</div></div>
+      <div class="stat"><div class="k">응대 건수 · 체험 안내</div><div class="v up">▲ 늘어난 응대</div><div class="d">다시 묻는 시간이 응대 시간으로</div></div>
+      <div class="stat"><div class="k">워크인 고객도</div><div class="v">예약처럼</div><div class="d">대기열에서 응대카드가 바로 생성</div></div>
+    </div>
+  </section>
+
+  <!-- 7. 클로징 -->
+  <section class="scene" id="sc7">
+    <div class="logo rise">C</div>
+    <h1 class="rise">묻지 않아도, <b>이미 알고 있는</b> 응대</h1>
+    <p class="rise">세라젬 웰라운지 셀프 문진 · 프로토타입</p>
+  </section>
+
+  <!-- 공통 오버레이 -->
+  <div id="hl"></div>
+  <div id="ripple"></div>
+  <div id="finger">👆</div>
+  <div id="beam"><div class="lbl">실시간 전달</div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div id="sub"></div>
+  <div id="scenebar"></div>
+  <div id="endhint">다시 보기 <kbd>R</kbd></div>
+
+  <div id="gate">
+    <h2>세라젬 웰라운지 셀프 문진 — 홍보영상</h2>
+    <p>실제 고객용 · 매니저용 화면을 자동으로 시연합니다 (약 60초)</p>
+    <label><input type="checkbox" id="optVoice" checked> 나레이션 (브라우저 한국어 음성)</label>
+    <label><input type="checkbox" id="optBgm" checked> 배경음악 (bgm.mp3)</label>
+    <label><input type="checkbox" id="optLive"> 실제 Firebase 연동으로 시연 (매니저 화면에 진짜로 저장됨)</label>
+    <button id="btnStart">▶ 시작</button>
+    <div class="keys"><kbd>Space</kbd> 시작 · <kbd>←</kbd><kbd>→</kbd> 장면 이동 · <kbd>R</kbd> 처음부터 · <kbd>F</kbd> 전체화면</div>
+    <div class="keys" id="gateMsg"></div>
+  </div>
+</div>
+</div>
+
+<audio id="bgm" src="../bgm.mp3" loop preload="auto"></audio>
+
+<script>
+/* ============================================================
+   설정
+   ============================================================ */
+const CUST_URL = '../index.html';
+const MGR_URL  = '../manager/index.html?mock=1&sim=0'; // 시연용 고객 6명 위에 새 카드가 도착하는 그림 (자동 도착은 끔)
+const PROMO_CARD = {                                     // 장면 4에서 매니저 화면에 도착하는 문진 (라이브 연동 OFF 일 때)
+  id: 'promo', no: 21, phone: '010-****-4821', phoneDigits: '01012344821', type: 'walkin', purpose: 'experience', visit: 'return',
+  doneAt: 0, parts: [{ part: '허리', lv: 3 }, { part: '무릎', lv: 2 }], zones: ['spine'], recommended: ['spine', 'circ'],
+  measured: null, recalledAt: null, status: 'waiting',
+  history: { date: '2026-08-02', zones: ['spine'], measured: null, summary: '척추존 30분 체험 · 가격 확인 후 상의해 보겠다고 함' },
+};
+
+/* 기기 프레임 위치 프리셋 (stage 1280×720 기준, 기기 원본 1280×800) */
+const POS = {
+  hidden:   { x: 128, y: 760, s: 0.80, o: 0 },
+  custFull: { x: 166, y: 84,  s: 0.74, o: 1 },
+  custSplit:{ x: 10,  y: 150, s: 0.46, o: 1 },
+  mgrSplit: { x: 681, y: 150, s: 0.46, o: 1 },
+  mgrFull:  { x: 166, y: 84,  s: 0.74, o: 1 },
+  custPip:  { x: 1010, y: 540, s: 0.20, o: 1 },
+  custPipBig:{ x: 700, y: 290, s: 0.42, o: 1 },
+  mgrHidden:{ x: 681, y: 760, s: 0.46, o: 0 },
+};
+
+/* ============================================================
+   유틸
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let runToken = 0;                       // 장면 점프 시 진행 중인 시퀀스를 취소
+const alive = t => t === runToken;
+async function step(t, ms) { await wait(ms); if (!alive(t)) throw new Error('cancelled'); }
+
+function place(dev, p, tag) {
+  dev.style.transform = `translate(${p.x}px, ${p.y}px) scale(${p.s})`;
+  dev.style.opacity = p.o;
+  dev.dataset.x = p.x; dev.dataset.y = p.y; dev.dataset.s = p.s;
+  dev.classList.toggle('show-tag', !!tag);
+  dev.querySelector('.tag').style.fontSize = (30 / p.s) + 'px';     // 축소돼도 라벨은 같은 크기로
+}
+/* iframe 안 요소의 위치를 stage 좌표로 */
+function rectOf(dev, ifr, sel) {
+  const el = typeof sel === 'string' ? ifr.contentDocument.querySelector(sel) : sel;
+  if (!el) return null;
+  const r = el.getBoundingClientRect(), s = +dev.dataset.s, x = +dev.dataset.x, y = +dev.dataset.y;
+  return { x: x + r.left * s, y: y + r.top * s, w: r.width * s, h: r.height * s };
+}
+async function tap(dev, ifr, sel, t) {
+  const r = rectOf(dev, ifr, sel);
+  if (!r) return;
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  const f = $('finger'); f.style.left = cx + 'px'; f.style.top = cy + 'px'; f.classList.add('on');
+  await step(t, 420);
+  const rp = $('ripple'); rp.style.left = cx + 'px'; rp.style.top = cy + 'px';
+  rp.classList.remove('go'); void rp.offsetWidth; rp.classList.add('go');
+  await step(t, 160);
+}
+function hideFinger() { $('finger').classList.remove('on'); }
+function highlight(dev, ifr, sel) {
+  const r = rectOf(dev, ifr, sel), h = $('hl');
+  if (!r) { h.classList.remove('on'); return; }
+  h.style.left = (r.x - 8) + 'px'; h.style.top = (r.y - 8) + 'px'; h.style.width = (r.w + 16) + 'px'; h.style.height = (r.h + 16) + 'px';
+  h.classList.add('on');
+}
+function unhighlight() { $('hl').classList.remove('on'); }
+function subtitle(html) { const s = $('sub'); if (!html) { s.classList.remove('on'); return; } s.innerHTML = html; s.classList.add('on'); }
+function showScene(id) { document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === id)); }
+
+/* ---------- 나레이션 (SpeechSynthesis ko-KR) ---------- */
+let voice = null;
+function pickVoice() { const v = speechSynthesis.getVoices(); voice = v.find(x => x.lang === 'ko-KR') || v.find(x => x.lang && x.lang.startsWith('ko')) || null; }
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function narrate(text) {
+  if (!$('optVoice').checked || !('speechSynthesis' in window)) return Promise.resolve();   // 음성 없으면 장면 최소 길이(min)로 진행
+  return new Promise(res => {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR'; u.rate = 0.95; u.pitch = 1; if (voice) u.voice = voice;
+    let done = false; const fin = () => { if (!done) { done = true; res(); } };
+    u.onend = fin; u.onerror = fin;
+    setTimeout(fin, Math.max(4000, text.length * 200));     // 음성이 끊겨도 영상은 진행
+    speechSynthesis.speak(u);
+  });
+}
+
+/* ---------- 카운트업 ---------- */
+function countTo(el, from, to, ms, fixed) {
+  const t0 = performance.now();
+  (function f(now) { const p = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - p, 3); el.textContent = (from + (to - from) * e).toFixed(fixed); if (p < 1) requestAnimationFrame(f); })(t0);
+}
+
+/* ============================================================
+   실제 앱 제어
+   ============================================================ */
+const devCust = $('devCust'), devMgr = $('devMgr'), ifCust = $('ifCust'), ifMgr = $('ifMgr');
+let W1 = null, W2 = null;               // iframe window
+let custWatchCb = null;                  // 고객 화면이 등록한 "내 문진 상태" 콜백 (라이브 OFF 시 직접 호출)
+const LIVE = () => $('optLive').checked;
+
+function loadFrame(ifr, url) {
+  return new Promise((res, rej) => {
+    ifr.onload = () => { try { void ifr.contentWindow.document; res(ifr.contentWindow); } catch (e) { rej(e); } };
+    ifr.src = url + (url.includes('?') ? '&' : '?') + 'promo=' + Date.now();
+  });
+}
+async function loadApps() {
+  const mgrUrl = LIVE() ? MGR_URL : MGR_URL + '&live=0';
+  [W1, W2] = await Promise.all([loadFrame(ifCust, CUST_URL), loadFrame(ifMgr, mgrUrl)]);
+  // 고객 화면: 앱 자체 음성은 끄고(나레이션과 겹침) 콜백만 즉시 실행
+  W1.speak = (text, onEnd) => { if (typeof onEnd === 'function') setTimeout(onEnd, 300); };
+  if (!LIVE()) {
+    W1.sendHandoff = async () => ({ no: String(PROMO_CARD.no), key: PROMO_CARD.id });
+    W1.watchHandoff = (key, cb) => { custWatchCb = cb; };
+    W1.stopHandoffWatch = () => { custWatchCb = null; };
+    W1.sendRecall = () => {};
+    W2.setConnStatus(true);
+    W2.onLiveQueue([]);                  // 이후 도착하는 카드가 "새 문진"으로 슬라이드인되도록
+  }
+  W2.setSort('newest');                  // 새 문진이 목록 맨 위에 도착하도록
+  await wait(300);
+}
+
+/* 고객 화면을 특정 장면 직전 상태까지 빠르게 진행 (장면 점프용) */
+async function fastForwardCust(toScene) {
+  if (toScene <= 3) return;
+  W1.startSurvey(); W1.chooseVisit('walkin');
+  for (const k of '01012344821') W1.phoneKey(k);
+  W1.document.getElementById('phoneAgree').checked = true; W1.renderPhone(); W1.finishPhone();
+  W1.choosePurpose('experience'); await wait(400);
+  W1.onPartTap('waist', '허리'); W1.setIntensity(3); W1.onPartTap('knee-l', '무릎'); W1.setIntensity(2); W1.finishBody(); await wait(300);
+  if (toScene <= 4) return;
+  W1.document.querySelector('[data-zone="spine"]').click(); await W1.confirmZones(); await wait(300);
+  if (!LIVE()) W2.onLiveQueue([{ ...PROMO_CARD, doneAt: Date.now() }]);
+  if (toScene <= 5) return;
+  W2.openDetail('promo'); W2.startServing('promo'); if (custWatchCb) custWatchCb('serving'); await wait(300);
+}
+
+/* ============================================================
+   장면
+   ============================================================ */
+const SCENES = [
+  { /* 1. 문제 제기 */
+    min: 7500, sub: '',
+    narr: '매장을 찾은 고객에게, 매니저는 같은 질문을 처음부터 다시 묻습니다. 워크인 고객 한 분의 니즈를 파악하는 데만 평균 18분.',
+    async run(t) {
+      showScene('sc1'); place(devCust, POS.hidden); place(devMgr, POS.mgrHidden);
+      ['q1', 'q2', 'q3'].forEach(id => { $(id).textContent = ''; $(id).classList.remove('on', 'done'); }); $('q4').classList.remove('on');
+      const lines = [['q1', '"어디가 불편하세요?"'], ['q2', '"언제부터 그러셨어요?"'], ['q3', '"어떤 제품 보러 오셨어요?"']];
+      await step(t, 400);
+      for (const [id, text] of lines) {
+        const el = $(id); el.classList.add('on');
+        for (let i = 1; i <= text.length; i++) { el.textContent = text.slice(0, i); await step(t, 38); }
+        el.classList.add('done'); await step(t, 420);
+      }
+      await step(t, 300); $('q4').classList.add('on');
+    },
+  },
+  { /* 2. 타이틀 */
+    min: 6000, sub: '',
+    narr: '그래서 만들었습니다. 고객이 태블릿에서 직접 불편한 곳을 고르고, 그 내용이 매니저에게 실시간으로 전달되는 셀프 문진.',
+    async run(t) {
+      showScene('sc2');
+      const els = document.querySelectorAll('#sc2 .rise'); els.forEach(e => e.classList.remove('on'));
+      for (const e of els) { await step(t, 250); e.classList.add('on'); }
+    },
+  },
+  { /* 3. 고객 화면 */
+    min: 11500, sub: '큰 글씨 · 큰 버튼 · <b>한 화면에 할 일 하나</b>',
+    narr: '60대 이상 고객도 어렵지 않게. 큰 글씨, 큰 버튼, 그리고 화면마다 할 일은 하나뿐입니다. 불편한 부위를 누르고 강도를 고르면, 딱 맞는 체험존을 추천해 드립니다.',
+    async run(t) {
+      showScene(null); place(devCust, POS.custFull, true); place(devMgr, POS.mgrHidden);
+      await step(t, 1100);
+      await tap(devCust, ifCust, '#s1 .btn-primary', t); W1.startSurvey(); await step(t, 900);
+      await tap(devCust, ifCust, '.visit-card[data-visit="walkin"]', t); W1.chooseVisit('walkin'); await step(t, 900);
+      await tap(devCust, ifCust, '.key', t);
+      for (const k of '01012344821') { W1.phoneKey(k); await step(t, 70); }
+      await tap(devCust, ifCust, '#phoneAgree', t); W1.document.getElementById('phoneAgree').checked = true; W1.renderPhone(); await step(t, 300);
+      await tap(devCust, ifCust, '#btnS3Next', t); W1.finishPhone(); await step(t, 800);
+      await tap(devCust, ifCust, '.purpose-card[data-purpose="experience"]', t); W1.choosePurpose('experience'); await step(t, 1000);
+      await tap(devCust, ifCust, '.part[data-id="waist"]', t); W1.onPartTap('waist', '허리'); await step(t, 500);
+      await tap(devCust, ifCust, '.lv-btn[data-lv="3"]', t); W1.setIntensity(3); await step(t, 600);
+      await tap(devCust, ifCust, '.part[data-id="knee-l"]', t); W1.onPartTap('knee-l', '무릎'); await step(t, 500);
+      await tap(devCust, ifCust, '.lv-btn[data-lv="2"]', t); W1.setIntensity(2); await step(t, 600);
+      await tap(devCust, ifCust, '#btnS4Next', t); W1.finishBody(); hideFinger(); await step(t, 900);
+      highlight(devCust, ifCust, '#zoneTop'); await step(t, 1600); unhighlight();
+    },
+  },
+  { /* 4. ★ 실시간 전달 (화면 분할) */
+    min: 9000, sub: '선택 완료 → <b>1초 만에</b> 매니저 화면으로',
+    narr: '고객이 선택을 마치는 순간, 매니저 태블릿에 응대카드가 도착합니다.',
+    async run(t) {
+      showScene(null); place(devCust, POS.custSplit, true); place(devMgr, POS.mgrSplit, true);
+      await step(t, 1200);
+      await tap(devCust, ifCust, '[data-zone="spine"]', t); W1.document.querySelector('[data-zone="spine"]').click(); await step(t, 700);
+      await tap(devCust, ifCust, '#btnS5Next', t); hideFinger();
+      const p = W1.confirmZones();                          // 라이브 OFF: 즉시 / ON: Firebase 저장 후 대기번호
+      $('beam').classList.add('on');
+      await p; await step(t, 500);
+      if (!LIVE()) W2.onLiveQueue([{ ...PROMO_CARD, doneAt: Date.now() }]);
+      await step(t, 1200); $('beam').classList.remove('on');
+      const card = findPromoCard(); if (card) { card.scrollIntoView({ block: 'nearest' }); highlight(devMgr, ifMgr, card); await step(t, 1600); unhighlight(); }
+    },
+  },
+  { /* 5. 응대카드 → 응대 시작 → 고객 배정 안내 */
+    min: 12000, sub: '처음부터 <b>다시 묻지 않는</b> 응대',
+    narr: '카드에는 불편 부위와 강도, 지난 방문 기록, 그리고 오늘의 응대 포인트가 정리되어 있습니다. 매니저가 응대 시작을 누르면, 고객 화면에는 바로 담당자 배정 안내가 뜹니다.',
+    async run(t) {
+      showScene(null); place(devMgr, POS.mgrFull, true); place(devCust, POS.custPip, true);
+      await step(t, 1100);
+      const card = findPromoCard();
+      if (card) { card.scrollIntoView({ block: 'nearest' }); await tap(devMgr, ifMgr, card, t); }
+      W2.openDetail(promoId()); hideFinger(); await step(t, 700);
+      const cards = () => W2.document.querySelectorAll('#viewDetail .d-card');
+      highlight(devMgr, ifMgr, cards()[0]); await step(t, 1900);
+      highlight(devMgr, ifMgr, cards()[1]); await step(t, 1700);
+      highlight(devMgr, ifMgr, cards()[4]); await step(t, 1900); unhighlight();
+      await tap(devMgr, ifMgr, '#viewDetail .d-actions .btn-primary', t); W2.startServing(promoId()); hideFinger();
+      if (!LIVE() && custWatchCb) custWatchCb('serving');
+      await step(t, 900);
+      place(devCust, POS.custPipBig, true);                          // 고객 화면 PIP 확대 → 배정 안내창 보이게
+      await step(t, 950); highlight(devCust, ifCust, '#managerModal .modal'); await step(t, 2200); unhighlight();
+    },
+  },
+  { /* 6. 결과 리포트 + 효과 수치 */
+    min: 9000, sub: '니즈 파악 시간 <b>절반 이하로</b>',
+    narr: '체험이 끝나면 세라체크 결과까지 쉬운 말로 안내합니다. 니즈 파악 시간은 절반 이하로, 남는 시간은 더 많은 고객에게.',
+    async run(t) {
+      showScene(null); place(devCust, POS.custFull, true); place(devMgr, POS.mgrHidden);
+      W1.closeManagerModal(); W1.go(8);
+      document.querySelectorAll('#sc6 .stat').forEach(e => e.classList.remove('on')); $('cnt1').textContent = '15.9';
+      await step(t, 2600);
+      showScene('sc6');
+      const stats = document.querySelectorAll('#sc6 .stat');
+      stats[0].classList.add('on'); countTo($('cnt1'), 15.9, 7.4, 1400, 1); await step(t, 700);
+      stats[1].classList.add('on'); await step(t, 700);
+      stats[2].classList.add('on');
+    },
+  },
+  { /* 7. 클로징 */
+    min: 6500, sub: '',
+    narr: '묻지 않아도 이미 알고 있는 응대. 세라젬 웰라운지 셀프 문진입니다.',
+    async run(t) {
+      showScene('sc7'); place(devCust, POS.hidden); place(devMgr, POS.mgrHidden);
+      const els = document.querySelectorAll('#sc7 .rise'); els.forEach(e => e.classList.remove('on'));
+      for (const e of els) { await step(t, 300); e.classList.add('on'); }
+      fadeBgm();
+    },
+  },
+];
+function promoId() {
+  if (!LIVE()) return PROMO_CARD.id;
+  const c = W2.document.querySelector('.qcard.new') || W2.document.querySelector('.qcard');   // 라이브: 방금 도착한 카드
+  return c ? c.getAttribute('onclick').match(/'([^']+)'/)[1] : null;
+}
+function findPromoCard() {
+  const cards = [...W2.document.querySelectorAll('.qcard')];
+  if (!LIVE()) return W2.document.querySelector(`.qcard[onclick*="'${PROMO_CARD.id}'"]`);
+  return W2.document.querySelector('.qcard.new') || cards[cards.length - 1] || null;
+}
+
+/* ============================================================
+   재생 엔진
+   ============================================================ */
+let current = -1, playing = false;
+const bar = $('scenebar');
+SCENES.forEach(() => { const i = document.createElement('i'); i.innerHTML = '<b></b>'; bar.appendChild(i); });
+
+async function playFrom(idx) {
+  runToken++; const t = runToken;
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  unhighlight(); hideFinger(); $('beam').classList.remove('on'); $('endhint').classList.remove('on');
+  // 장면 점프: 앱을 새로 불러와 해당 장면 직전 상태로
+  await loadApps(); if (!alive(t)) return;
+  await fastForwardCust(idx + 1); if (!alive(t)) return;
+  playing = true;
+  for (let i = idx; i < SCENES.length; i++) {
+    current = i;
+    [...bar.children].forEach((el, k) => { el.classList.toggle('done', k < i); el.firstChild.style.transition = 'none'; el.firstChild.style.width = k < i ? '100%' : '0'; });
+    const sc = SCENES[i], t0 = performance.now();
+    subtitle(sc.sub);
+    const nar = narrate(sc.narr);
+    requestAnimationFrame(() => { const b = bar.children[i].firstChild; b.style.transition = `width ${sc.min}ms linear`; b.style.width = '100%'; });
+    try { await sc.run(t); } catch (e) { if (!alive(t)) return; console.error(e); }
+    await nar; if (!alive(t)) return;
+    const left = sc.min - (performance.now() - t0); if (left > 0) { try { await step(t, left); } catch (e) { return; } }
+    subtitle('');
+    await wait(250); if (!alive(t)) return;
+  }
+  playing = false; $('endhint').classList.add('on');
+}
+
+function fadeBgm() { const a = $('bgm'); const iv = setInterval(() => { a.volume = Math.max(0, a.volume - 0.01); if (a.volume <= 0.001) { clearInterval(iv); a.pause(); } }, 120); }
+function start() {
+  $('gate').classList.add('hide');
+  const a = $('bgm'); a.volume = 0.15; a.currentTime = 0;
+  if ($('optBgm').checked) a.play().catch(() => {});
+  playFrom(0);
+}
+
+/* ---------- 키 · 시작 ---------- */
+$('btnStart').onclick = start;
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); if (!$('gate').classList.contains('hide')) start(); }
+  if (e.key === 'ArrowRight' && current < SCENES.length - 1 && $('gate').classList.contains('hide')) playFrom(current + 1);
+  if (e.key === 'ArrowLeft' && current > 0) playFrom(current - 1);
+  if (e.key === 'r' || e.key === 'R') location.reload();
+  if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+
+/* ---------- 창 크기에 맞춰 stage 축소 ---------- */
+function fit() { const s = Math.min(innerWidth / 1280, innerHeight / 720); $('stage').style.transform = `scale(${s})`; }
+addEventListener('resize', fit); fit();
+
+/* ---------- 주소 옵션: ?autostart=1 (바로 재생) · ?voice=0 · ?bgm=0 · ?live=1 ---------- */
+const Q = new URLSearchParams(location.search);
+if (Q.get('voice') === '0') $('optVoice').checked = false;
+if (Q.get('bgm') === '0') $('optBgm').checked = false;
+if (Q.get('live') === '1') $('optLive').checked = true;
+window.__promo = { get current() { return current; }, get playing() { return playing; }, errors: [] };
+window.addEventListener('error', e => window.__promo.errors.push(e.message));
+if (Q.get('autostart') === '1') addEventListener('load', () => setTimeout(start, 300));
+
+/* ---------- 사전 점검: 같은 서버에서 열렸는지 ---------- */
+if (location.protocol === 'file:') $('gateMsg').textContent = '⚠ 파일을 직접 열면 앱 화면을 조작할 수 없어요. 실행.bat 으로 서버를 켠 뒤 http://localhost:8000/promo/ 로 여세요.';
+</script>
+</body>
+</html>

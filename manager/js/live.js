@@ -19,7 +19,8 @@ const FIREBASE_CONFIG = {
 
 let liveDb = null;
 try {
-  if (window.firebase && FIREBASE_CONFIG.databaseURL) {
+  // ?live=0 → DB 연결 없이 화면만 (홍보영상·오프라인 시연용)
+  if (window.firebase && FIREBASE_CONFIG.databaseURL && new URLSearchParams(location.search).get('live') !== '0') {
     firebase.initializeApp(FIREBASE_CONFIG);
     liveDb = firebase.database();
   }
