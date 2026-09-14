@@ -110,6 +110,13 @@ main { flex: 1; position: relative; min-height: 0; }
 .sum-card .v { font-size: 26px; font-weight: 800; line-height: 1.1; }
 .sum-card .v small { font-size: 14px; color: var(--text-sub); font-weight: 700; margin-left: 4px; }
 .sum-card.alert .v { color: var(--red-text); }
+.queue-tools { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; margin-bottom: 10px; padding: 10px 14px; background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.tool-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tool-label { font-size: 13px; font-weight: 800; color: var(--text-sub); margin-right: 4px; }
+.chip-btn { border: 1.5px solid var(--line); background: #fff; color: var(--text); font: inherit; font-size: 14px; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; }
+.chip-btn small { font-size: 12px; font-weight: 800; color: var(--text-sub); background: var(--bg-soft); padding: 1px 7px; border-radius: 999px; }
+.chip-btn.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+.chip-btn.on small { background: rgba(255,255,255,0.25); color: #fff; }
 .queue-head { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--text-sub); margin-bottom: 10px; padding: 0 4px; }
 .legend { display: flex; align-items: center; gap: 6px; }
 .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 10px; }
