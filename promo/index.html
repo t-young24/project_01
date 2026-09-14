@@ -624,7 +624,7 @@ function findPromoCard() {
    ============================================================ */
 const SCENES = [
   { /* 1. 문제 제기 */
-    min: 9000, sub: '',
+    min: 9000, sub: '', tail: 1800,                                   // "평균 18분" 까지 나온 뒤 1.8초 머물고 넘어감
     narr: ['매장을 찾은 고객에게, 매니저는 같은 질문을 처음부터 다시 묻습니다.', { text: '워크인 고객 한 분의 니즈를 파악하는 데만, 평균 18분.', rate: 0.9 }],
     async run(t) {
       showScene('sc1'); place(devCust, POS.hidden); place(devMgr, POS.mgrHidden);
@@ -789,6 +789,7 @@ async function playFrom(idx) {
     flushCues(t);
     await nar; if (!alive(t)) return;
     const left = sc.min - (performance.now() - t0); if (left > 0) { try { await step(t, left); } catch (e) { return; } }
+    try { await step(t, sc.tail ?? 400); } catch (e) { return; }      // 나레이션이 끝난 뒤 잠깐 머물렀다가 다음 장면 (tail: ms)
     subtitle(''); clearCallouts();
     await wait(300); if (!alive(t)) return;
   }
