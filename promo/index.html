@@ -78,7 +78,21 @@
   #sc1 .cap { font-size: 21px; color: #aab7c6; font-weight: 500; text-align: center; }
 
   /* 2. 타이틀 */
-  #sc2 { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+  #sc2 { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  #sc2 .ways { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+  #sc2 .ways .lbl { font-size: 17px; font-weight: 700; color: var(--sub); letter-spacing: 1px; margin-right: 6px; opacity: 0; transition: opacity .5s; }
+  #sc2 .ways .lbl.on { opacity: 1; }
+  #sc2 .way { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.7); border: 1px solid rgba(34,48,63,.08); border-radius: 999px; padding: 8px 20px 8px 12px; box-shadow: 0 8px 22px rgba(34,48,63,.08); opacity: 0; transform: translateY(14px); transition: opacity .5s, transform .5s cubic-bezier(.2,.8,.2,1); }
+  #sc2 .way.on { opacity: 1; transform: none; }
+  #sc2 .way b { font-size: 19px; color: var(--text); font-weight: 700; }
+  #sc2 .way small { display: block; font-size: 13.5px; color: var(--sub); font-weight: 500; margin-top: 1px; }
+  #sc2 .way .or { font-size: 15px; font-weight: 800; color: var(--blue); }
+  /* 기기 실루엣 (CSS) */
+  .dev { position: relative; border: 2.5px solid #2c3644; border-radius: 6px; background: #fff; flex: none; }
+  .dev::after { content: ''; position: absolute; inset: 3px; border-radius: 3px; background: linear-gradient(145deg, var(--blue-light), #fff); }
+  .dev.phone { width: 22px; height: 38px; border-radius: 5px; }
+  .dev.tablet { width: 44px; height: 32px; }
+  .dev.phone::before { content: ''; position: absolute; left: 50%; bottom: 1px; width: 8px; height: 2px; margin-left: -4px; background: #2c3644; border-radius: 2px; z-index: 1; }
   #sc2 .logo { animation: floaty 3.4s ease-in-out infinite; }
   @keyframes floaty { 50% { transform: translateY(-9px); } }
   #sc2 h1 { font-size: 72px; margin: 6px 0 0; color: var(--text); letter-spacing: -2.5px; font-weight: 800; line-height: 1.1; }
@@ -200,6 +214,12 @@
     <div class="kicker rise">Ceragem Wellounge</div>
     <h1 class="rise">세라젬 웰라운지 <b>셀프 문진</b></h1>
     <p class="rise">고객이 직접 고르고, 매니저는 바로 응대합니다</p>
+    <div class="ways">
+      <span class="lbl">어디서든 같은 문진</span>
+      <div class="way"><span class="dev phone"></span><span><b>내 휴대폰으로</b><small>QR · 링크로 접속, 줄 서지 않고</small></span></div>
+      <span class="way or" style="padding:6px 12px">또는</span>
+      <div class="way"><span class="dev tablet"></span><span><b>매장 태블릿으로</b><small>대기 중 바로 입력</small></span></div>
+    </div>
     <div class="flow">
       <div class="node"><span class="ic">📱</span>고객이 직접 선택</div>
       <div class="arrow"><i></i><i></i><i></i></div>
@@ -388,12 +408,12 @@ const NARR = {
   src: 'voice/narration.mp3',
   scenes: [
     [[0.00, 5.30], [6.50, 10.50]],                   // 1 문제 제기: 다시 묻습니다. | (카운터) 평균 18분.
-    [[11.50, 13.10], [14.20, 21.40]],                // 2 타이틀: 그래서 만들었습니다. | (흐름도) 셀프 문진.
-    [[22.35, 31.40], [32.40, 37.65]],                // 3 고객 화면: 어렵지 않게. 큰 글씨… | (허리 터치) 불편한 부위를 누르고…
-    [[38.70, 43.95]],                                // 4 실시간 전달
-    [[45.00, 52.30], [53.30, 59.15]],                // 5 응대카드: 카드에는… | (응대 시작 터치) 매니저가 응대 시작을 누르면…
-    [[60.20, 64.40], [65.50, 70.35]],                // 6 결과: 세라체크 결과… | (수치 카드) 니즈 파악 시간은…
-    [[71.20, 78.82]],                                // 7 클로징
+    [[11.50, 13.10], [14.20, 21.30]],                // 2 타이틀: 그래서 만들었습니다. | (기기 칩·흐름도) 태블릿이나 휴대폰에서… 셀프 문진.
+    [[22.25, 31.20], [32.30, 37.55]],                // 3 고객 화면: 어렵지 않게. 큰 글씨… | (허리 터치) 불편한 부위를 누르고…
+    [[38.65, 44.15]],                                // 4 실시간 전달
+    [[45.30, 52.45], [53.55, 59.40]],                // 5 응대카드: 카드에는… | (응대 시작 터치) 매니저가 응대 시작을 누르면…
+    [[60.50, 64.60], [65.70, 70.60]],                // 6 결과: 세라체크 결과… | (수치 카드) 니즈 파악 시간은…
+    [[71.50, 79.08]],                                // 7 클로징
   ],
 };
 const MP3 = { has: false, el: new Audio(), chain: Promise.resolve(), next: 0, parts: [], done: null };
@@ -571,16 +591,19 @@ const SCENES = [
     },
   },
   { /* 2. 타이틀 */
-    min: 7500, sub: '',
+    min: 8500, sub: '',
     narr: ['그래서 만들었습니다.', '고객이 태블릿이나 휴대폰에서 직접 불편한 곳을 고르고, 그 내용이 매니저에게 실시간으로 전달되는 셀프 문진.'],
     async run(t) {
       showScene('sc2');
       const els = document.querySelectorAll('#sc2 .rise'); els.forEach(e => e.classList.remove('on'));
+      const ways = document.querySelectorAll('#sc2 .ways > *'); ways.forEach(e => e.classList.remove('on'));
       const flow = document.querySelectorAll('#sc2 .flow > *'); flow.forEach(e => e.classList.remove('on'));
       for (const e of els) { await step(t, 280); e.classList.add('on'); }
-      await step(t, 1100);
-      cue(t, 1);                                                                        // "고객이 … 직접 불편한 곳을 고르고…" 문장과 함께 흐름도
-      for (const e of flow) { e.classList.add('on'); await step(t, e.classList.contains('arrow') ? 500 : 750); }   // 고객 → 전달 → 매니저 흐름
+      await step(t, 700);
+      cue(t, 1);                                                                        // "고객이 태블릿이나 휴대폰에서 직접…" 문장과 함께
+      for (const e of ways) { e.classList.add('on'); await step(t, 420); }              // 내 휴대폰 · 또는 · 매장 태블릿
+      await step(t, 500);
+      for (const e of flow) { e.classList.add('on'); await step(t, e.classList.contains('arrow') ? 450 : 700); }   // 고객 → 전달 → 매니저 흐름
     },
   },
   { /* 3. 고객 화면 — 천천히, 터치마다 설명 말풍선 */
