@@ -542,11 +542,12 @@ details.report-item[open] summary { border-bottom: 1px solid var(--line); }
   .steps { gap: 2px; }
   .step-dot { width: 20px; height: 20px; font-size: 11px; }
   .step-line { display: none; }
-  .btn-back { min-height: 36px; font-size: 13px; padding: 0 8px; border-radius: 9px; border-width: 2px; white-space: nowrap; }
-  .btn-icon { width: 34px; min-height: 36px; font-size: 16px; border-width: 2px; }
+  header > div:first-child { gap: 6px !important; }
+  header .btn-back { min-height: 36px; font-size: 14px; padding: 0 10px; border-radius: 10px; border-width: 2px; white-space: nowrap; }
+  header .btn-icon { width: 36px; min-height: 36px; font-size: 16px; border-width: 2px; padding: 0; }
+  header .header-right .btn-back { font-size: 0; width: 36px; min-height: 36px; padding: 0; border-radius: 50%; }   /* "처음으로" → ⌂ 아이콘만 */
+  header .header-right .btn-back::before { content: '⌂'; font-size: 18px; }
   .btn { white-space: nowrap; }
-  .header-right .btn-back { font-size: 0; width: 36px; padding: 0; border-radius: 50%; }   /* "처음으로" → ⌂ 아이콘만 */
-  .header-right .btn-back::before { content: '⌂'; font-size: 18px; }
   .screen { padding: 12px 14px 14px; }
   h1 { font-size: 24px; margin-bottom: 4px; }
   h2 { font-size: 19px; }
@@ -587,24 +588,33 @@ details.report-item[open] summary { border-bottom: 1px solid var(--line); }
   .key-fn { font-size: 14px; }
 
   /* 4단계 인체모형 */
-  .body-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; }
-  .body-stage { padding: 6px; border-radius: 18px; }
+  #s4 h1 { font-size: 21px; }
+  #s4 .sub { font-size: 13.5px; }
+  .body-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; }
+  .body-stage { padding: 4px; border-radius: 18px; }
   .body-stage svg { max-height: 100%; }
-  .part text { font-size: 17px; }
-  .side-panel { gap: 10px; max-height: 46%; }
-  .intensity-card h2 { font-size: 18px; }
-  .lv-buttons { gap: 8px; margin-top: 10px; }
-  .lv-btn { min-height: 68px; border-radius: 14px; gap: 2px; }
-  .lv-btn .lv-num { font-size: 14px; }
-  .lv-btn .lv-name { font-size: 19px; }
-  .hint-card { font-size: 16px; padding: 14px; }
-  .selected-card h2 { font-size: 17px; }
-  .count-badge { font-size: 14px; }
-  .selected-list { gap: 6px; }
-  .selected-list li { padding: 8px 10px 8px 12px; gap: 8px; border-radius: 12px; }
-  .selected-list .p-name { font-size: 16px; }
-  .remove-btn { width: 38px; height: 38px; font-size: 18px; }
-  .empty-msg { font-size: 15px; padding: 12px 0; }
+  .part text { font-size: 18px; }
+  .side-panel { gap: 8px; max-height: 44%; }
+  /* 안내 한 줄 (PC 의 "👈 왼쪽 그림에서" 문구는 숨기고 모바일 문구로) */
+  .hint-card { font-size: 0; padding: 10px 14px; text-align: left; display: flex; align-items: center; gap: 10px; }
+  .hint-card::before { content: '👆'; font-size: 22px; }
+  .hint-card::after { content: '위 그림에서 불편한 곳을 눌러주세요'; font-size: 16px; }
+  .intensity-card { padding: 12px 14px; }
+  .intensity-card h2 { font-size: 18px; margin-bottom: 2px; }
+  .lv-buttons { gap: 8px; margin-top: 8px; }
+  .lv-btn { min-height: 62px; border-radius: 14px; gap: 1px; }
+  .lv-btn .lv-num { font-size: 13px; }
+  .lv-btn .lv-name { font-size: 18px; }
+  /* 선택한 부위: 세로 목록 대신 가로 칩 */
+  .selected-card { flex: none; padding: 10px 14px 12px; }
+  .selected-card h2 { font-size: 15px; margin-bottom: 0; }
+  .count-badge { font-size: 13px; }
+  .selected-list { flex-direction: row; flex-wrap: wrap; gap: 6px; margin-top: 8px; overflow: visible; }
+  .selected-list li { padding: 6px 6px 6px 12px; gap: 6px; border-radius: 999px; background: var(--bg-soft); }
+  .selected-list .p-name { font-size: 14px; flex: none; }
+  .selected-list .chip { font-size: 12px; padding: 3px 8px; }
+  .remove-btn { width: 28px; height: 28px; font-size: 14px; }
+  .empty-msg { font-size: 13.5px; padding: 6px 0 0; text-align: left; }
 
   /* 5단계 체험존 추천 */
   .zone-basis { gap: 6px; margin-bottom: 8px; min-height: 0; }
@@ -619,6 +629,7 @@ details.report-item[open] summary { border-bottom: 1px solid var(--line); }
   .zone-reason { font-size: 14px; margin-top: 4px; }
   .rec-badge { font-size: 13px; padding: 3px 10px; }
   .zone-check { width: 36px; height: 36px; font-size: 20px; border-width: 3px; }
+  .chosen-strip { flex: 1 1 100%; }                    /* 선택 칩은 한 줄, 완료 버튼은 그 아래 전체 폭 */
   .chosen-strip .label { font-size: 15px; }
   .chosen-strip .chip { font-size: 15px; padding: 6px 12px; }
 
