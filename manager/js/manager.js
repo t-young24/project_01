@@ -4,9 +4,9 @@
    ============================================================ */
 
 /* ---------- 상태 ---------- */
-/* 기본은 고객 태블릿에서 실시간으로 들어오는 문진만 표시.
-   주소 뒤에 ?mock=1 을 붙이면 data.js 의 시연용 mock 고객도 함께 표시 (_mock 표시로 구분, DB 에는 반영 안 됨) */
-const USE_MOCK = new URLSearchParams(location.search).get('mock') === '1';
+/* 기본은 data.js 의 시연용 mock 고객 + 고객 태블릿에서 실시간으로 들어오는 문진을 함께 표시.
+   mock 고객은 _mock 표시로 구분되며 DB 에는 반영되지 않음. 주소 뒤에 ?mock=0 을 붙이면 실시간 문진만 표시 */
+const USE_MOCK = new URLSearchParams(location.search).get('mock') !== '0';
 const state = {
   view: 'queue',
   customers: USE_MOCK ? CUSTOMERS.map(c => ({ ...c, _mock: true, doneAt: Date.now() - c.doneAgo * 60000 })) : [],
