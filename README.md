@@ -28,12 +28,16 @@
 │   └─ js/data.js          mock 고객 데이터 · 근무 현황 (?mock=0 이면 숨김)
 │      js/live.js          ★ 실시간 대기열 수신 (Firebase 설정 포함)
 │      js/manager.js       동작 로직
+├─ promo/index.html        ★ 웹 모션 홍보영상 (실제 화면 자동 시연 · 나레이션 · 자막)
+├─ docs/홍보영상_대본.md    홍보영상 대본 · 스토리보드
+├─ bgm.mp3                 홍보영상 배경음악
 ├─ 실행.bat                 로컬 서버 실행 + 브라우저 열기
 └─ README.md               이 문서
 ```
 
 - 고객용 화면: `http://localhost:8000/`
 - 매니저용 화면: `http://localhost:8000/manager/`
+- 홍보영상: `http://localhost:8000/promo/` (아래 7절)
 
 | 바꾸고 싶은 것 | 파일 |
 |---|---|
@@ -284,7 +288,20 @@ GitHub Pages 처럼 서버가 없는 곳에 배포해도 동작하도록, 두 �
 
 ---
 
-## 6. 기술 사항
+## 6. 홍보영상 (`promo/`)
+
+`docs/홍보영상_대본.md` 의 60초 구성을 그대로 재생하는 웹 페이지. 고객용·매니저용 **실제 화면을 iframe 으로 띄워 자동 조작**하므로
+반드시 서버를 통해 열어야 함 (`실행.bat` → `http://localhost:8000/promo/`, 또는 GitHub Pages 의 `/promo/`).
+
+- 시작 화면에서 나레이션(브라우저 한국어 음성) · 배경음악(`bgm.mp3`) · 실제 Firebase 연동 여부 선택 → `▶ 시작`
+- 조작: `Space` 시작 · `←` `→` 장면 이동 · `R` 처음부터 · `F` 전체화면
+- 주소 옵션: `?autostart=1` 바로 재생 · `?voice=0` 음성 끔 · `?bgm=0` 음악 끔 · `?live=1` 실제 Firebase 사용
+- **MP4 로 만들기**: `F` 전체화면 → `Win + Alt + R` (Xbox Game Bar 녹화) → `▶ 시작` → 끝나면 `Win + Alt + R` 로 종료.
+  녹화 파일은 `내 PC > 동영상 > 캡처` 폴더. Game Bar 설정에서 "게임 오디오 녹음"이 켜져 있어야 나레이션·음악이 들어감
+- 기본(연동 OFF)은 매니저 화면에 시연용 카드가 도착하는 것처럼 보이게 처리 → DB 에 기록 남지 않음. `?live=1` 이면 실제로 Firebase 를 거침
+- 장면 구성·문구 수정: `promo/index.html` 의 `SCENES` 배열 (자막 `sub`, 나레이션 `narr`, 최소 길이 `min`)
+
+## 7. 기술 사항
 - 순수 HTML / CSS / JavaScript. 외부 라이브러리는 고객 ↔ 매니저 연동용 Firebase SDK(CDN, compat 빌드)만 사용
 - 인체모형 · 리모컨 · QR 패턴 모두 SVG로 직접 구현
 - 음성 안내: Web Speech API `SpeechSynthesis` (ko-KR, 속도 0.88)
