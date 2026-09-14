@@ -15,7 +15,7 @@ const state = {
   visitType: null,      // 2단계: 'reserved' 예약 | 'walkin' 일반 방문
   reservation: null,    // 예약 고객이면 조회된 예약 정보 {parts, ...}
   purpose: null,        // 3-1단계(일반 방문): 'experience' | 'consult' | 'both'
-  soundOn: true,
+  soundOn: new URLSearchParams(location.search).get('mute') !== '1',   // ?mute=1 → 음성 안내 끔 (홍보영상 등 다른 화면에 끼워 넣을 때)
 };
 
 /* ============================================================
@@ -873,6 +873,7 @@ function toast(msg) {
    시작
    ============================================================ */
 renderSelected();
+if (!state.soundOn) document.getElementById('btnSound').textContent = '🔇';   // ?mute=1 로 열렸을 때 아이콘 상태 맞춤
 go(1, { push: false });
 // 브라우저 자동재생 정책: 첫 터치 시 음성 안내를 다시 시도
 document.addEventListener('pointerdown', function firstTouch() {
