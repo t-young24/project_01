@@ -4,10 +4,15 @@
    ============================================================ */
 
 /* ---------- 상태 ---------- */
+/* 기본은 고객 태블릿에서 실시간으로 들어오는 문진만 표시.
+   주소 뒤에 ?mock=1 을 붙이면 data.js 의 시연용 mock 고객도 함께 표시 (_mock 표시로 구분, DB 에는 반영 안 됨) */
+const USE_MOCK = new URLSearchParams(location.search).get('mock') === '1';
 const state = {
   view: 'queue',
-  customers: CUSTOMERS.map(c => ({ ...c, doneAt: Date.now() - c.doneAgo * 60000 })),
-  incoming: [...INCOMING],
+  customers: USE_MOCK ? CUSTOMERS.map(c => ({ ...c, _mock: true, doneAt: Date.now() - c.doneAgo * 60000 })) : [],
+  incoming: INCOMING.map(c => ({ ...c, _mock: true })),
+  knownIds: new Set(),      // 실시간 대기열에서 이미 본 문진 키 → 새로 들어온 것만 슬라이드인·알림
+  connected: false,
   selectedId: null,
   stats: { served: WORK_STATS.served.today, guided: WORK_STATS.guided.today },
 };
@@ -88,7 +93,7 @@ function renderQueue() {
     const parts = c.parts.map(x => `${x.part}${x.lv}`).join(' · ');
     const lead = isConsultOnly(c) ? '<span class="parts consult">[💬 상담만]</span>' : `<span class="parts">[${parts}]</span>`;
     return `
-    <div class="qcard p${p} ${c.status} ${c._new ? 'new' : ''} ${isConsultOnly(c) ? 'consult-only' : ''}" onclick="openDetail(${c.id})">
+    <div class="qcard p${p} ${c.status} ${c._new ? 'new' : ''} ${isConsultOnly(c) ? 'consult-only' : ''}" onclick="openDetail('${c.id}')">
       <div class="q-no"><div class="n">${c.no}</div><div class="l">대기번호</div><span class="prio">${prioLabel(p)}</span></div>
       <div class="q-main">
         <div class="q-badges">${badges(c)}</div>
@@ -175,8 +180,8 @@ function renderDetail() {
       <div class="d-badges">${badges(c)}</div>
       <div class="d-actions">
         ${c.status === 'waiting'
-          ? `<button class="btn btn-primary btn-lg" onclick="startServing(${c.id})">응대 시작</button>`
-          : `<button class="btn btn-secondary btn-lg" onclick="finishGuide(${c.id})">${isConsultOnly(c) ? '상담 완료' : '체험 안내 완료'}</button>`}
+          ? `<button class="btn btn-primary btn-lg" onclick="startServing('${c.id}')">응대 시작</button>`
+          : `<button class="btn btn-secondary btn-lg" onclick="finishGuide('${c.id}')">${isConsultOnly(c) ? '상담 완료' : '체험 안내 완료'}</button>`}
       </div>
     </div>
     <div class="d-grid">
@@ -238,15 +243,23 @@ function renderDetail() {
 }
 function startServing(id) {
   const c = state.customers.find(x => x.id === id);
+  if (!c) return;
   c.status = 'serving';
   state.stats.served += 1;
+  if (!c._mock) setQueueStatus(id, 'serving');      // 고객 태블릿에 "담당 매니저 배정" 안내가 바로 뜸
   toast(`${c.no}번 고객 응대 시작`);
   renderDetail();
 }
 function finishGuide(id) {
   const c = state.customers.find(x => x.id === id);
+  if (!c) return;
   if (!isConsultOnly(c)) state.stats.guided += 1;   // 상담만 한 고객은 체험 안내 횟수에 넣지 않음
   state.customers = state.customers.filter(x => x.id !== id);
+  if (!c._mock) {
+    setQueueStatus(id, 'done');
+    const what = isConsultOnly(c) ? '구매/구독 상담 진행' : `${c.zones.map(k => ZONES[k].name).join('·')} 체험 안내 완료`;
+    saveVisitSummary(c.phoneDigits, what);
+  }
   toast(`${c.no}번 고객 ${isConsultOnly(c) ? '상담 완료' : '체험 안내 완료'}`);
   showView('queue');
 }
@@ -292,4 +305,82 @@ document.getElementById('managerName').textContent = `${MANAGER.store} · ${MANA
 tickClock(); setInterval(tickClock, 15000);
 showView('queue');
 setInterval(() => { if (state.view === 'queue') renderQueue(); }, 30000);   // 대기시간 갱신
-setTimeout(simulateArrival, 25000);                                          // 실시간 도착 느낌: 25초 뒤 새 고객 1명 자동 추가
+if (USE_MOCK) setTimeout(simulateArrival, 25000);                            // mock 모드: 25초 뒤 새 고객 1명 자동 추가
+
+/* ============================================================
+   실시간 대기열 (live.js) — 고객 태블릿 문진이 들어오면 바로 카드 생성
+   ============================================================ */
+function setConnStatus(ok) {
+  state.connected = ok;
+  const el = document.getElementById('connStatus');
+  if (!el) return;
+  el.textContent = ok ? '● 실시간 연결됨' : '○ 연결 안 됨';
+  el.classList.toggle('on', ok);
+}
+function onLiveQueue(list) {
+  // 서버 상태를 기준으로 하되, 이 화면에서 방금 바꾼 상태(응대 시작)가 되돌아가지 않도록 로컬 serving 유지
+  const local = new Map(state.customers.filter(c => !c._mock).map(c => [c.id, c]));
+  const live = list.map(raw => {
+    const prev = local.get(raw.id);
+    const isNew = !state.knownIds.has(raw.id);
+    state.knownIds.add(raw.id);
+    const status = prev && prev.status === 'serving' && raw.status === 'waiting' ? 'serving' : raw.status;
+    return { ...raw, status, need: buildNeed(raw), script: buildScript(raw), _new: isNew && state._liveReady };   // 처음 불러온 목록은 알림 없이, 그 뒤 들어온 것만 슬라이드인
+  });
+  const arrived = live.filter(c => c._new);
+  state.customers = [...state.customers.filter(c => c._mock), ...live];
+  state._liveReady = true;
+  arrived.forEach(c => toast(`🔔 ${c.no}번 고객 문진 완료 — ${TYPE_LABEL[c.type]} · ${VISIT_LABEL[c.visit]}`));
+  if (state.view === 'queue') renderQueue();
+  else if (state.view === 'detail') {
+    if (state.customers.some(c => c.id === state.selectedId)) renderDetail(); else showView('queue');
+  }
+  document.getElementById('queueCount').textContent = state.customers.filter(x => x.status === 'waiting').length;
+}
+if (typeof connectQueue === 'function') connectQueue(onLiveQueue, setConnStatus);
+
+/* ---------- 응대카드 문구 생성 (문진에서 수집된 것만 사용 · 효능 단정 표현 금지) ---------- */
+function zoneNames(keys) { return keys.map(k => ZONES[k].name).join('·'); }
+function firstZone(c) { return c.recommended.find(k => c.zones.includes(k)) || c.zones[0]; }
+function buildNeed(c) {
+  const who = `${VISIT_LABEL[c.visit]}${c.history && c.history.zones.length ? `(이전 ${zoneNames(c.history.zones)})` : ''}`;
+  const src = c.type === 'reserved' ? '예약 고객' : '워크인';
+  if (isConsultOnly(c)) return `구매/구독(렌탈) 상담만 희망 · 체험 없이 바로 상담 · ${who} · ${src}`;
+  const parts = c.parts.map(p => `${p.part} ${p.lv}단계(${LV_NAME[p.lv]})`).join(' + ') || '부위 미선택';
+  const bits = [`${parts} → ${zoneNames(c.zones) || '존 미선택'} 선택`];
+  const skipped = c.recommended.filter(k => !c.zones.includes(k));
+  if (skipped.length) bits.push(`문진 추천 ${zoneNames(skipped)}은 고르지 않음`);
+  bits.push(who, src);
+  if (c.purpose === 'both') bits.push('체험 후 구매/구독 상담 희망');
+  if (c.recalledAt) bits.push('🔔 매니저 재호출');
+  bits.push(c.measured ? '측정 완료' : '측정 전');
+  return bits.join(' · ');
+}
+function buildScript(c) {
+  if (isConsultOnly(c)) return [
+    '체험 안내 없이 상담석으로 바로 안내, 관심 제품군부터 여쭤보기',
+    '구매 vs 렌탈 조건 비교표·AS 안내 자료 준비',
+    '원하시면 상담 후 짧은 체험 제안 (효능 단정 표현 금지)',
+  ];
+  const lines = [];
+  const first = firstZone(c);
+  const rest = c.zones.filter(k => k !== first);
+  let l1 = first ? `${ZONES[first].name} 먼저 안내` : '선택 존 확인 후 안내';
+  if (rest.length) l1 += `, 이어서 ${zoneNames(rest)} 순서로`;
+  if (c.history && c.history.date) l1 += ` → 지난 방문(${c.history.date}) 체험 느낌부터 여쭤보기`;
+  lines.push(l1);
+  const top = [...c.parts].sort((a, b) => b.lv - a.lv)[0];
+  if (top) {
+    lines.push(top.lv === 3
+      ? `${top.part} 3단계(심함) → 온열·강도는 낮게 시작, 불편하면 바로 멈추도록 안내`
+      : top.lv === 2
+        ? `${top.part} 2단계(보통) → 강도 보통에서 시작, 체험 후 느낌 여쭤보기`
+        : `${top.part} 1단계(약함) → 편안한 코스 위주로, 리모컨 사용법 천천히 시연`);
+  }
+  const skipped = c.recommended.filter(k => !c.zones.includes(k));
+  if (c.purpose === 'both') lines.push('체험 후 구매/구독(렌탈) 상담 희망 → 제품 비교표·렌탈 조건 미리 준비 (효능 단정 표현 금지)');
+  else if (skipped.length) lines.push(`추천됐던 ${zoneNames(skipped)}은 고르지 않음 → 체험 후 느낌 여쭙고 필요 시 추가 제안`);
+  else if (c.visit === 'first') lines.push('첫방문 → 문진 내용 확인만 하고 처음부터 다시 묻지 않기, 체험 후 세라체크존 안내');
+  else lines.push('측정 전 → 체험 후 세라체크존 측정 안내 (효능 단정 표현 금지)');
+  return lines.slice(0, 3);
+}

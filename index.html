@@ -42,7 +42,6 @@
         <button class="btn btn-primary btn-xl" onclick="startSurvey()">시작하기 ▶</button>
       </div>
       <div class="auto-hint" id="autoHint">음성 안내를 들려드리고 있어요…</div>
-      <div class="auto-bar"><div id="autoBar"></div></div>
     </section>
 
     <!-- ============ 2단계: 방문 유형 (예약 / 일반 방문) ============ -->
@@ -449,7 +448,10 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="js/config.js"></script>
+<script src="js/handoff.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

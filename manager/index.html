@@ -17,6 +17,7 @@
       <button class="tab" data-view="stats" onclick="showView('stats')">근무 현황</button>
     </nav>
     <div class="topbar-right">
+      <span class="conn" id="connStatus">○ 연결 중…</span>
       <button class="btn btn-sim" onclick="simulateArrival()">＋ 새 문진 도착 (시뮬)</button>
       <div class="clock" id="clock">--:--</div>
       <div class="manager" id="managerName">매니저</div>
@@ -57,7 +58,10 @@
 
 <div id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="js/data.js"></script>
+<script src="js/live.js"></script>
 <script src="js/manager.js"></script>
 </body>
 </html>
