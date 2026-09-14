@@ -5,6 +5,7 @@
      빨강 = 우선(3인 이상) · 노랑 = 2인 · 초록 = 단독/여유
    ============================================================ */
 :root {
+  --brand-red: #d71920;  --brand-red-dark: #a8121a;   /* 세라젬 로고 레드 (CI) */
   --bg: #f7f3ec;
   --bg-card: #ffffff;
   --bg-soft: #efe8dc;
@@ -42,7 +43,7 @@ b { font-weight: 800; }
   padding: 0 24px; background: rgba(255,255,255,0.8); border-bottom: 1px solid var(--line); gap: 20px;
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--blue-dark); white-space: nowrap; }
-.brand .logo { width: 32px; height: 32px; border-radius: 10px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 16px; }
+.brand .logo { width: 32px; height: 32px; border-radius: 10px; background: var(--brand-red);   /* 세라젬 CI 레드 */ color: #fff; display: grid; place-items: center; font-size: 16px; }
 .brand-sub { background: var(--blue-light); color: var(--blue-dark); font-size: 13px; padding: 3px 10px; border-radius: 999px; }
 .tabs { display: flex; gap: 6px; background: var(--bg-soft); padding: 4px; border-radius: 12px; }
 .tab {
