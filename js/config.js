@@ -33,7 +33,7 @@ const RESERVATIONS = {
    products: 그 존에 비치된 세라젬 제품 목록 (4단계)              */
 const ZONES = {
   spine: {
-    name: '척추존', icon: '🦴', color: '#e4eef9',
+    name: '척추존', icon: '🦴', color: '#fbe6e7',
     short: '척추 정렬과 허리 통증 완화에 도움을 주는 온열 마사지 체험',
     detail: '누워서 받는 척추 온열 의료기기 체험이에요. 따뜻한 온열과 함께 목부터 허리까지 척추를 따라 지압해 주어, 굳은 허리와 등을 부드럽게 풀어주고 바른 자세를 돕습니다.',
     products: ['마스터 V11', '마스터 V9', '마스터 V7'],
@@ -75,13 +75,13 @@ const PART_WEIGHT = {
 /* ---------- 7단계: 리모컨 버튼 설명 ----------
    n 은 index.html 리모컨 SVG 의 data-r 번호와 짝을 이룸  */
 const REMOTE_GUIDE = [
-  { n: 1, color: '#d64545', icon: '⏻', name: '전원',        desc: '기기를 켜고 끌 때 눌러요' },
-  { n: 2, color: '#2f6db5', icon: '▶',  name: '시작 / 멈춤', desc: '체험을 시작하거나 잠시 멈춰요' },
+  { n: 1, color: '#e8590c', icon: '⏻', name: '전원',        desc: '기기를 켜고 끌 때 눌러요' },
+  { n: 2, color: '#d71920', icon: '▶',  name: '시작 / 멈춤', desc: '체험을 시작하거나 잠시 멈춰요' },
   { n: 3, color: '#3aa76d', icon: '▲▼', name: '강도 조절',   desc: '위는 세게, 아래는 약하게' },
   { n: 4, color: '#d9a520', icon: '🔥', name: '온열',        desc: '따뜻한 온도를 켜고 꺼요' },
   { n: 5, color: '#7c5cbf', icon: '⏱', name: '시간',        desc: '체험 시간을 정해요 (10·20·30분)' },
   { n: 6, color: '#22303f', icon: '☰',  name: '모드 선택',   desc: '자동 코스를 바꿔요' },
-  { n: 7, color: '#2f6db5', icon: '🔔', name: '매니저 호출', desc: '도움이 필요하면 언제든 눌러요' },
+  { n: 7, color: '#d71920', icon: '🔔', name: '매니저 호출', desc: '도움이 필요하면 언제든 눌러요' },
 ];
 
 /* ---------- 8단계: 세라체크존 측정 데이터 주소 ----------

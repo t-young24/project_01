@@ -9,15 +9,15 @@
   --bg: #f7f3ec;
   --bg-card: #ffffff;
   --bg-soft: #efe8dc;
-  --blue: #2f6db5;
-  --blue-dark: #235391;
-  --blue-light: #e4eef9;
+  --blue: #d71920;        /* 포인트 색 = 세라젬 CI 레드 (변수 이름은 기존 코드 호환을 위해 유지) */
+  --blue-dark: #a8121a;
+  --blue-light: #fbe6e7;
   --text: #22303f;
   --text-sub: #5b6875;
   --line: #d9d0c2;
   --green: #3aa76d;  --green-bg: #e3f4ea;  --green-text: #237a4a;
   --yellow: #d9a520; --yellow-bg: #fbf1d4; --yellow-text: #8a6200;
-  --red: #d64545;    --red-bg: #fbe3e3;    --red-text: #a32b2b;
+  --red: #e8590c;    --red-bg: #fde8dc;    --red-text: #9a3a00;   /* 우선(10분↑) · 위험 — 포인트 레드와 구분되게 진한 주황 */
   --purple: #7c5cbf; --purple-bg: #ece6f7;
   --radius: 16px;
   --shadow: 0 4px 16px rgba(40, 50, 70, 0.07);
@@ -63,7 +63,7 @@ b { font-weight: 800; }
   transition: transform 0.12s ease;
 }
 .btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(47,109,181,0.25); }
+.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(215,25,32,0.25); }
 .btn-secondary { background: #fff; color: var(--blue-dark); border: 2px solid var(--blue); }
 .btn-ghost { background: var(--bg-soft); color: var(--text); }
 .btn-sim { background: #fff; color: var(--text-sub); border: 2px dashed var(--line); font-size: 14px; }
