@@ -9,9 +9,11 @@
   --bg: #f7f3ec;
   --bg-card: #ffffff;
   --bg-soft: #efe8dc;
-  --blue: #d71920;        /* 포인트 색 = 세라젬 CI 레드 (변수 이름은 기존 코드 호환을 위해 유지) */
+  --blue: #d71920;        /* 포인트 색 = 세라젬 CI 레드 — 버튼·활성 탭/칩·번호 배지 등 "행동" 요소에만 (변수 이름은 호환을 위해 유지) */
   --blue-dark: #a8121a;
-  --blue-light: #fbe6e7;
+  --blue-light: #fbe6e7;   /* 작은 칩·배지 용 */
+  --ink: #22303f;          /* 강조 텍스트 — 레드 대신 진한 먹색 */
+  --tint: #f3ede3;         /* 넓은 안내 박스 배경 — 연한 크림 */
   --text: #22303f;
   --text-sub: #5b6875;
   --line: #d9d0c2;
@@ -44,13 +46,13 @@ b { font-weight: 800; }
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--blue-dark); white-space: nowrap; }
 .brand .logo { width: 32px; height: 32px; border-radius: 10px; background: var(--brand-red);   /* 세라젬 CI 레드 */ color: #fff; display: grid; place-items: center; font-size: 16px; }
-.brand-sub { background: var(--blue-light); color: var(--blue-dark); font-size: 13px; padding: 3px 10px; border-radius: 999px; }
+.brand-sub { background: var(--bg-soft); color: var(--ink); font-size: 13px; padding: 3px 10px; border-radius: 999px; }
 .tabs { display: flex; gap: 6px; background: var(--bg-soft); padding: 4px; border-radius: 12px; }
 .tab {
   border: none; background: transparent; font: inherit; font-weight: 800; font-size: 16px; color: var(--text-sub);
   padding: 0 18px; min-height: 40px; border-radius: 9px; cursor: pointer; display: flex; align-items: center; gap: 8px;
 }
-.tab.active { background: #fff; color: var(--blue-dark); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.tab.active { background: #fff; color: var(--blue); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
 .tab-badge { background: var(--red); color: #fff; font-size: 13px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; display: grid; place-items: center; }
 .topbar-right { display: flex; align-items: center; gap: 16px; }
 .clock { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -64,7 +66,7 @@ b { font-weight: 800; }
 }
 .btn:active { transform: scale(0.97); }
 .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(215,25,32,0.25); }
-.btn-secondary { background: #fff; color: var(--blue-dark); border: 2px solid var(--blue); }
+.btn-secondary { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
 .btn-ghost { background: var(--bg-soft); color: var(--text); }
 .btn-sim { background: #fff; color: var(--text-sub); border: 2px dashed var(--line); font-size: 14px; }
 .conn { font-size: 13px; color: var(--text-sub); white-space: nowrap; }
@@ -80,7 +82,7 @@ main { flex: 1; position: relative; min-height: 0; }
 /* ---------- 배지 / 칩 ---------- */
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap; line-height: 1.4; }
 .badge.walkin { background: var(--yellow-bg); color: var(--yellow-text); }
-.badge.reserved { background: var(--blue-light); color: var(--blue-dark); }
+.badge.reserved { background: #e9eef5; color: #3b5170; }
 .badge.return { background: var(--purple-bg); color: var(--purple); }
 .badge.first { background: var(--bg-soft); color: var(--text-sub); }
 .badge.party { background: #fff; border: 1.5px solid var(--line); color: var(--text); }
@@ -91,7 +93,7 @@ main { flex: 1; position: relative; min-height: 0; }
 /* 방문 목적 */
 .badge.p-exp { background: var(--green-bg); color: var(--green-text); }
 .badge.p-consult { background: #fde8c8; color: #8a4b00; }
-.badge.p-both { background: var(--blue-light); color: var(--blue-dark); }
+.badge.p-both { background: #efe9f8; color: #5a3f9a; }
 .chip.none { background: var(--bg-soft); color: var(--text-sub); }
 .q-need .parts.consult { color: #8a4b00; }
 .zone-pill.consult-pill { background: #fde8c8; color: #8a4b00; }
@@ -145,7 +147,7 @@ main { flex: 1; position: relative; min-height: 0; }
 .q-main { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .q-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .q-need { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.q-need .parts { color: var(--blue-dark); }
+.q-need .parts { color: var(--blue); }
 .q-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .q-zones { display: flex; gap: 6px; }
 .q-wait { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -167,7 +169,7 @@ main { flex: 1; position: relative; min-height: 0; }
 .d-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.15fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; }
 .d-card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 .d-card .num { width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 12px; display: grid; place-items: center; }
-.need-line { background: var(--blue-light); color: var(--blue-dark); border-radius: 12px; padding: 10px 12px; font-size: 15px; font-weight: 800; line-height: 1.45; margin-top: 8px; }
+.need-line { background: var(--tint); color: var(--ink); border-radius: 12px; padding: 10px 12px; font-size: 15px; font-weight: 800; line-height: 1.45; margin-top: 8px; }
 .parts-row { display: flex; flex-wrap: wrap; gap: 6px; }
 /* 3번 칸: 실사용자 · 이전 방문 기록 */
 .role-box { border-radius: 12px; padding: 10px 12px; background: var(--bg); display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
@@ -207,7 +209,7 @@ main { flex: 1; position: relative; min-height: 0; }
 .basic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
 .basic-grid .k { font-size: 12px; color: var(--text-sub); font-weight: 800; }
 .basic-grid .v { font-size: 15px; font-weight: 800; }
-.d-card.priority-note { background: var(--blue-light); }
+.d-card.priority-note { background: var(--tint); }
 
 /* ============ C. 근무 현황 ============ */
 .stats-head { margin-bottom: 18px; }
