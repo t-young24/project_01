@@ -91,15 +91,15 @@ function goHome() {
   state.visitType = null; state.reservation = null; state.purpose = null;
   document.getElementById('phoneAgree').checked = false;
   ticketNo = null; resultCode = null; managerAssigned = false;
+  if (typeof stopHandoffWatch === 'function') stopHandoffWatch();
+  handoffKey = null;
   renderSelected(); clearPending();
   document.querySelectorAll('.part').forEach(p => p.classList.remove('selected', 'pending', 'lv1', 'lv2', 'lv3'));
   go(1, { push: false });
 }
 
 /* 화면 진입 시 동작 */
-let autoTimer = null;
 function onEnter(step) {
-  clearTimeout(autoTimer);
   clearInterval(guideTimer);
   clearTimeout(managerTimer);
   clearTimeout(consultTimer);
@@ -119,26 +119,18 @@ function onEnter(step) {
   if (step === 8) loadMeasurements();
 }
 
-/* ---------- 1단계: 음성 안내 → 끝난 뒤 START_WAIT_MS 대기 → 자동 전환 ---------- */
+/* ---------- 1단계: 음성 안내 (자동 전환 없음 · 시작하기 버튼으로만 진행) ---------- */
 let welcomeToken = 0;
 function startWelcome() {
   const token = ++welcomeToken;
-  clearTimeout(autoTimer);
-  const bar = document.getElementById('autoBar');
   const hint = document.getElementById('autoHint');
-  bar.style.transition = 'none'; bar.style.width = '0';
   hint.textContent = '음성 안내를 들려드리고 있어요…';
   speak(WELCOME_TEXT, () => {
     if (token !== welcomeToken || state.step !== 1) return;
-    hint.textContent = `${START_WAIT_MS / 1000}초 뒤에 자동으로 다음 화면으로 넘어가요`;
-    requestAnimationFrame(() => {
-      bar.style.transition = `width ${START_WAIT_MS}ms linear`;
-      bar.style.width = '100%';
-    });
-    autoTimer = setTimeout(() => { if (state.step === 1) startSurvey(); }, START_WAIT_MS);
+    hint.textContent = '준비되시면 시작하기 버튼을 눌러 주세요';
   });
 }
-function startSurvey() { clearTimeout(autoTimer); welcomeToken++; go(2); }
+function startSurvey() { welcomeToken++; go(2); }
 
 /* ============================================================
    2단계 — 방문 유형 (예약 / 일반 방문)
@@ -246,17 +238,28 @@ function choosePurpose(p) {
 
 /* ---------- 6-1단계 — 상담 대기 (구매/구독 상담만 원하는 고객) ---------- */
 let consultTimer = null;
-function startConsultWait() {
+async function startConsultWait() {
   clearTimeout(consultTimer);
-  if (!ticketNo) ticketNo = newTicketNo();
+  document.getElementById('consultWaitNo').textContent = '…';
+  if (!ticketNo) {
+    // 매니저 대시보드로 상담 요청 전달 (부위·존 없음) → 대기번호 발급
+    await deliverToManager({
+      time: new Date().toLocaleString('ko-KR'),
+      phone: formatPhone(phoneDigits()), phoneDigits: phoneDigits(),
+      visitType: state.visitType, purpose: state.purpose, fromReservation: false,
+      parts: [], zones: [], recommended: [],
+    });
+    if (state.step !== '6b') return;            // 기다리는 동안 다른 화면으로 이동했으면 중단
+    if (!ticketNo) ticketNo = newTicketNo();
+  }
   document.getElementById('consultWaitNo').textContent = ticketNo;
-  // 매니저 전달 (프로토타입: 콘솔 출력)
   console.log('[매니저 전달] 상담 요청', {
     time: new Date().toLocaleString('ko-KR'), ticket: ticketNo,
     phone: formatPhone(phoneDigits()), visitType: state.visitType, purpose: PURPOSE_LABEL[state.purpose],
   });
   speak(`구매 상담 요청이 담당 매니저에게 전달되었어요. 고객님의 대기번호는 ${ticketNo}번입니다. 담당 매니저가 곧 안내해 드릴 예정이니 잠시만 기다려 주세요.`);
-  consultTimer = setTimeout(() => { if (state.step === '6b') go('6c'); }, MANAGER_WAIT_MS);
+  // 담당자 배정은 매니저 화면에서 "응대 시작"을 누를 때 (watchHandoff). 매니저 연동이 안 됐을 때만 시간 경과로 진행
+  if (!handoffKey) consultTimer = setTimeout(() => { if (state.step === '6b') go('6c'); }, MANAGER_WAIT_MS);
 }
 function startPhoneStep() {
   renderPhone();
@@ -446,21 +449,43 @@ function updateZoneUI() {
     ? `<span class="label">선택한 체험</span>` + state.zones.map(k => `<span class="chip blue">${ZONES[k].icon} ${ZONES[k].name}</span>`).join('')
     : `<span class="label">체험존을 하나 이상 골라주세요</span>`;
 }
-function confirmZones() {
+async function confirmZones() {
   if (state.zones.length === 0) return;
-  // 매니저 전달 (프로토타입: 콘솔 출력)
   const payload = {
     time: new Date().toLocaleString('ko-KR'),
     phone: formatPhone(phoneDigits()),
+    phoneDigits: phoneDigits(),
     visitType: state.visitType,                       // 'reserved' | 'walkin'
-    purpose: state.purpose ? PURPOSE_LABEL[state.purpose] : null,   // 일반 방문의 방문 목적
+    purpose: state.purpose,                           // 일반 방문의 방문 목적 key ('experience' | 'consult' | 'both')
     fromReservation: !!state.reservation,             // 부위 정보가 예약 시 체크한 것인지
     parts: groupedParts().map(g => ({ part: g.part, lv: g.lv })),
-    zones: state.zones.map(k => ZONES[k].name),
-    recommended: recKeys.map(k => ZONES[k].name),
+    zones: [...state.zones],                          // 체험존 key (매니저 화면과 공통)
+    recommended: [...recKeys],
   };
   console.log('[매니저 전달] 문진 결과', payload);
+  // 매니저 대시보드(Firebase)로 전달 → 대기번호 발급. 연결 안 되면 기존처럼 임의 번호
+  const btn = document.getElementById('btnS5Next');
+  btn.disabled = true; btn.textContent = '전달 중…';
+  await deliverToManager(payload);
+  btn.disabled = false; btn.textContent = '선택 완료 ▶';
   go(6);
+}
+
+/* ---------- 매니저 전달 공통 (handoff.js) ----------
+   · 전송 성공 → 서버가 발급한 대기번호를 ticketNo 로 사용하고, 매니저가 "응대 시작"을
+     누르는 순간을 실시간으로 받아 배정 안내창을 띄움 (20초 타이머는 fallback 으로 유지)  */
+let handoffKey = null;
+async function deliverToManager(payload) {
+  if (typeof sendHandoff !== 'function') return;
+  const res = await sendHandoff(payload);
+  if (!res) return;
+  ticketNo = res.no;
+  handoffKey = res.key;
+  watchHandoff(handoffKey, status => {
+    if (status !== 'serving') return;
+    if (state.step === 6 && !managerAssigned) { clearTimeout(managerTimer); showManagerModal(); }
+    if (state.step === '6b') { clearTimeout(consultTimer); go('6c'); }
+  });
 }
 
 /* ============================================================
@@ -487,10 +512,11 @@ function renderManagerInfo() {
   }).join('');
   const names = state.zones.map(k => ZONES[k].name).join(', ');
   speak(`선택하신 ${names} 체험이 담당 매니저에게 전달되었어요. 고객님의 대기번호는 ${ticketNo}번입니다. 잠시만 기다려 주시면 매니저가 안내해 드릴게요.`);
-  // 테이블오더 방식: 일정 시간 뒤 담당 매니저 배정 → 안내창 표시 (그 전에는 체험 시작 불가)
+  // 담당 매니저 배정 = 매니저 화면에서 "응대 시작"을 누르는 순간 (watchHandoff 가 showManagerModal 호출). 그 전에는 체험 시작 불가
+  // 매니저 연동이 안 됐을 때(오프라인 · 설정 없음)만 MANAGER_WAIT_MS 뒤 자동 배정으로 시연 가능
   if (!managerAssigned) {
     document.getElementById('s6Status').textContent = '담당 직원을 배정하고 있어요…';
-    managerTimer = setTimeout(() => { if (state.step === 6) showManagerModal(); }, MANAGER_WAIT_MS);
+    if (!handoffKey) managerTimer = setTimeout(() => { if (state.step === 6) showManagerModal(); }, MANAGER_WAIT_MS);
   } else {
     document.getElementById('s6Status').textContent = '담당 매니저가 배정되었어요 · 체험을 시작하세요';
   }
@@ -532,6 +558,7 @@ function closeNotReadyModal() {
 }
 function callManagerAgain() {
   console.log('[매니저 재호출]', { ticket: ticketNo, time: new Date().toLocaleString('ko-KR') });
+  if (typeof sendRecall === 'function') sendRecall(handoffKey);
   toast('🔔 매니저를 다시 호출했어요');
   speak('매니저를 다시 호출했어요. 곧 도와드릴게요.');
 }

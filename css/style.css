@@ -150,8 +150,6 @@ h2 { font-size: 32px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.5px;
 }
 #s1 h1 { font-size: 54px; }
 .auto-hint { margin-top: 30px; font-size: 20px; color: var(--text-sub); min-height: 28px; }
-.auto-bar { width: 320px; height: 8px; background: var(--bg-soft); border-radius: 4px; margin: 12px auto 0; overflow: hidden; }
-.auto-bar > div { height: 100%; width: 0; background: var(--blue); }
 
 /* ============ 2단계 방문 유형 (예약 / 일반) ============ */
 .visit-layout { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: stretch; padding: 10px 60px 20px; min-height: 0; }

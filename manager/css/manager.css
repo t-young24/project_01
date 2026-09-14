@@ -66,6 +66,8 @@ b { font-weight: 800; }
 .btn-secondary { background: #fff; color: var(--blue-dark); border: 2px solid var(--blue); }
 .btn-ghost { background: var(--bg-soft); color: var(--text); }
 .btn-sim { background: #fff; color: var(--text-sub); border: 2px dashed var(--line); font-size: 14px; }
+.conn { font-size: 13px; color: var(--text-sub); white-space: nowrap; }
+.conn.on { color: var(--green-text); font-weight: 700; }
 .btn-lg { min-height: 52px; font-size: 17px; padding: 0 24px; }
 
 /* ---------- 화면 ---------- */
