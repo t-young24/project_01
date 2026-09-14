@@ -174,8 +174,8 @@
   <div id="bgfx"><i></i><i></i><i></i></div>
 
   <!-- 실제 앱 (같은 서버에서 열려야 iframe 내부 조작 가능) -->
-  <div class="device" id="devCust"><div class="tag">고객 태블릿</div><div class="shell"><iframe id="ifCust" title="고객용 화면"></iframe><div class="gloss"></div></div></div>
-  <div class="device" id="devMgr"><div class="tag">매니저 태블릿</div><div class="shell"><iframe id="ifMgr" title="매니저용 화면"></iframe><div class="gloss"></div></div></div>
+  <div class="device" id="devCust"><div class="tag">고객 화면</div><div class="shell"><iframe id="ifCust" title="고객용 화면"></iframe><div class="gloss"></div></div></div>
+  <div class="device" id="devMgr"><div class="tag">매니저 화면</div><div class="shell"><iframe id="ifMgr" title="매니저용 화면"></iframe><div class="gloss"></div></div></div>
 
   <!-- 1. 문제 제기 -->
   <section class="scene" id="sc1">
@@ -572,14 +572,14 @@ const SCENES = [
   },
   { /* 2. 타이틀 */
     min: 7500, sub: '',
-    narr: ['그래서 만들었습니다.', '고객이 태블릿에서 직접 불편한 곳을 고르고, 그 내용이 매니저에게 실시간으로 전달되는 셀프 문진.'],
+    narr: ['그래서 만들었습니다.', '고객이 태블릿이나 휴대폰에서 직접 불편한 곳을 고르고, 그 내용이 매니저에게 실시간으로 전달되는 셀프 문진.'],
     async run(t) {
       showScene('sc2');
       const els = document.querySelectorAll('#sc2 .rise'); els.forEach(e => e.classList.remove('on'));
       const flow = document.querySelectorAll('#sc2 .flow > *'); flow.forEach(e => e.classList.remove('on'));
       for (const e of els) { await step(t, 280); e.classList.add('on'); }
       await step(t, 1100);
-      cue(t, 1);                                                                        // "고객이 태블릿에서 직접…" 문장과 함께 흐름도
+      cue(t, 1);                                                                        // "고객이 … 직접 불편한 곳을 고르고…" 문장과 함께 흐름도
       for (const e of flow) { e.classList.add('on'); await step(t, e.classList.contains('arrow') ? 500 : 750); }   // 고객 → 전달 → 매니저 흐름
     },
   },
@@ -613,7 +613,7 @@ const SCENES = [
   },
   { /* 4. ★ 실시간 전달 (화면 분할) */
     min: 11000, sub: '선택 완료 → <b>1초 만에</b> 매니저 화면으로',
-    narr: [{ text: '고객이 선택을 마치는 순간,', pause: 1200 }, '매니저 태블릿에 응대카드가 도착합니다.'],
+    narr: [{ text: '고객이 선택을 마치는 순간,', pause: 1200 }, '매니저 화면에 응대카드가 도착합니다.'],
     async run(t) {
       showScene(null); place(devCust, POS.custSplit, true); place(devMgr, POS.mgrSplit, true);
       await step(t, 1500);
@@ -712,7 +712,7 @@ async function playFrom(idx) {
 function fadeBgm() { const a = $('bgm'); const iv = setInterval(() => { a.volume = Math.max(0, a.volume - 0.01); if (a.volume <= 0.001) { clearInterval(iv); a.pause(); } }, 120); }
 function start() {
   $('gate').classList.add('hide');
-  const a = $('bgm'); a.volume = 0.15; a.currentTime = 0;
+  const a = $('bgm'); a.volume = 0.18; a.currentTime = 0;
   if ($('optBgm').checked) a.play().catch(() => {});
   playFrom(0);
 }
