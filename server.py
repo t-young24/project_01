@@ -18,6 +18,44 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=ROOT, **kwargs)
 
+    def send_head(self):
+        # Range 요청 지원 — 브라우저가 mp3(홍보영상 나레이션·BGM) 재생 위치를 옮길 수 있게
+        rng = self.headers.get("Range")
+        path = self.translate_path(self.path)
+        if not rng or not os.path.isfile(path):
+            return super().send_head()
+        try:
+            start, end = rng.replace("bytes=", "").split("-")
+            size = os.path.getsize(path)
+            start = int(start) if start else 0
+            end = int(end) if end else size - 1
+            end = min(end, size - 1)
+            if start > end or start >= size:
+                self.send_response(416); self.send_header("Content-Range", "bytes */%d" % size); self.end_headers()
+                return None
+            f = open(path, "rb"); f.seek(start)
+            self.send_response(206)
+            self.send_header("Content-Type", self.guess_type(path))
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Content-Range", "bytes %d-%d/%d" % (start, end, size))
+            self.send_header("Content-Length", str(end - start + 1))
+            self.end_headers()
+            self._range_left = end - start + 1
+            return f
+        except ValueError:
+            return super().send_head()
+
+    def copyfile(self, source, outputfile):
+        left = getattr(self, "_range_left", None)
+        if left is None:
+            return super().copyfile(source, outputfile)
+        self._range_left = None
+        while left > 0:
+            chunk = source.read(min(64 * 1024, left))
+            if not chunk:
+                break
+            outputfile.write(chunk); left -= len(chunk)
+
     def end_headers(self):
         # 캐시 금지 — css/js/json 을 수정하면 새로고침만으로 바로 반영
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
@@ -30,8 +68,10 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         sys.stdout.write("%s - %s\n" % (self.address_string(), fmt % args))
 
 
-class ReusableServer(socketserver.TCPServer):
+class ReusableServer(http.server.ThreadingHTTPServer):
+    # 멀티스레드: 오디오 Range 요청과 화면 파일 요청이 서로를 막지 않게
     allow_reuse_address = True
+    daemon_threads = True
 
 
 if __name__ == "__main__":
