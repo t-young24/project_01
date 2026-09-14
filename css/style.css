@@ -256,9 +256,9 @@ h2 { font-size: 32px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.5px;
 .part.pending .shape { fill: var(--blue-light); stroke: var(--blue); stroke-width: 5; }
 .part.selected .shape { fill: var(--blue); stroke: var(--blue-dark); }
 .part.selected text { fill: #fff; }
-.part.selected.lv1 .shape { fill: #6f9ed6; }
-.part.selected.lv2 .shape { fill: var(--blue); }
-.part.selected.lv3 .shape { fill: #1d4a86; }
+.part.selected.lv1 .shape { fill: var(--green); stroke: #2c8a57; }     /* 강도 버튼과 같은 색: 1 초록 · 2 노랑 · 3 주황 */
+.part.selected.lv2 .shape { fill: var(--yellow); stroke: #b3860f; }
+.part.selected.lv3 .shape { fill: var(--red); stroke: #b8430a; }
 
 .side-panel { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
 .intensity-card { border: 3px solid var(--blue); }
@@ -528,3 +528,154 @@ details.report-item[open] summary { border-bottom: 1px solid var(--line); }
   display: flex; align-items: center; gap: 12px;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ============================================================
+   모바일 세로 화면 (휴대폰) — 900px 이하
+   · 2단 레이아웃을 1단으로, 글자·버튼은 손가락 크기 유지하며 축소
+   · PC/태블릿(가로 1280) 은 위 규칙 그대로
+   ============================================================ */
+@media (max-width: 900px) {
+  header { height: 56px; padding: 0 6px; gap: 4px; }
+  .brand { font-size: 0; gap: 0; }                       /* 상호명은 숨기고 로고만 */
+  .brand .logo { width: 28px; height: 28px; font-size: 14px; border-radius: 8px; }
+  .header-right { display: flex; gap: 4px; }
+  .steps { gap: 2px; }
+  .step-dot { width: 20px; height: 20px; font-size: 11px; }
+  .step-line { display: none; }
+  .btn-back { min-height: 36px; font-size: 13px; padding: 0 8px; border-radius: 9px; border-width: 2px; white-space: nowrap; }
+  .btn-icon { width: 34px; min-height: 36px; font-size: 16px; border-width: 2px; }
+  .btn { white-space: nowrap; }
+  .header-right .btn-back { font-size: 0; width: 36px; padding: 0; border-radius: 50%; }   /* "처음으로" → ⌂ 아이콘만 */
+  .header-right .btn-back::before { content: '⌂'; font-size: 18px; }
+  .screen { padding: 12px 14px 14px; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  h2 { font-size: 19px; }
+  .sub { font-size: 15px; }
+  .card { padding: 14px 16px; border-radius: 18px; }
+  .btn { min-height: 52px; padding: 0 18px; font-size: 18px; border-radius: 14px; }
+  .btn-xl { min-height: 58px; font-size: 20px; padding: 0 22px; border-radius: 16px; }
+  .screen-footer { flex-wrap: wrap; padding-top: 10px; gap: 8px; }
+  .screen-footer .sub { font-size: 14px; flex: 1 1 100%; }
+  .screen-footer .btn-xl { flex: 1; }
+  .chip { font-size: 14px; padding: 4px 10px; }
+
+  /* 1단계 */
+  #s1 h1 { font-size: 30px; }
+  .mic-wave { width: 96px; height: 96px; font-size: 44px; margin-bottom: 16px; }
+  .auto-hint { font-size: 15px; margin-top: 16px; }
+
+  /* 2단계 방문 유형 · 3-1 방문 목적 */
+  .visit-layout { grid-template-columns: 1fr; gap: 12px; padding: 4px 0 8px; overflow-y: auto; }
+  .visit-card { padding: 18px 16px; min-height: 0; border-width: 3px; }
+  .visit-icon { width: 72px; height: 72px; font-size: 40px; border-radius: 22px; margin-bottom: 8px; }
+  .visit-card h2 { font-size: 22px; }
+  .visit-card p { font-size: 15px; }
+  .purpose-card { padding: 12px 14px; gap: 12px; min-height: 76px; border-width: 3px; border-radius: 18px; }
+  .purpose-icon { width: 52px; height: 52px; font-size: 26px; border-radius: 16px; }
+  .purpose-card h2 { font-size: 17px; }
+
+  /* 3단계 전화번호 */
+  .phone-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 10px; }
+  .phone-left { gap: 10px; }
+  .phone-display { font-size: 30px; letter-spacing: 2px; padding: 12px; border-radius: 16px; border-width: 3px; }
+  .agree-box { padding: 10px 12px; gap: 10px; border-radius: 14px; }
+  .agree-check { width: 34px; height: 34px; font-size: 20px; border-radius: 9px; border-width: 3px; }
+  .agree-text { font-size: 12.5px; line-height: 1.4; }
+  .agree-text b { font-size: 14px; }
+  .keypad { gap: 8px; }
+  .key { min-height: 50px; font-size: 24px; border-radius: 14px; }
+  .key-fn { font-size: 14px; }
+
+  /* 4단계 인체모형 */
+  .body-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; }
+  .body-stage { padding: 6px; border-radius: 18px; }
+  .body-stage svg { max-height: 100%; }
+  .part text { font-size: 17px; }
+  .side-panel { gap: 10px; max-height: 46%; }
+  .intensity-card h2 { font-size: 18px; }
+  .lv-buttons { gap: 8px; margin-top: 10px; }
+  .lv-btn { min-height: 68px; border-radius: 14px; gap: 2px; }
+  .lv-btn .lv-num { font-size: 14px; }
+  .lv-btn .lv-name { font-size: 19px; }
+  .hint-card { font-size: 16px; padding: 14px; }
+  .selected-card h2 { font-size: 17px; }
+  .count-badge { font-size: 14px; }
+  .selected-list { gap: 6px; }
+  .selected-list li { padding: 8px 10px 8px 12px; gap: 8px; border-radius: 12px; }
+  .selected-list .p-name { font-size: 16px; }
+  .remove-btn { width: 38px; height: 38px; font-size: 18px; }
+  .empty-msg { font-size: 15px; padding: 12px 0; }
+
+  /* 5단계 체험존 추천 */
+  .zone-basis { gap: 6px; margin-bottom: 8px; min-height: 0; }
+  .zone-basis .chip { font-size: 14px; padding: 5px 10px; }
+  .zone-grid { grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+  .zone-card { padding: 12px 14px; gap: 12px; border-width: 3px; border-radius: 18px; }
+  .zone-card.big { padding: 14px 16px; min-height: 0; gap: 14px; }
+  .zone-card.big .zone-icon, .zone-icon { width: 60px; height: 60px; font-size: 30px; border-radius: 16px; }
+  .zone-card:not(.big) .zone-icon { width: 52px; height: 52px; font-size: 26px; }
+  .zone-card.big .zone-text h2, .zone-text h2 { font-size: 20px; margin-bottom: 2px; }
+  .zone-text p, .zone-card:not(.big) .zone-text p { font-size: 14px; }
+  .zone-reason { font-size: 14px; margin-top: 4px; }
+  .rec-badge { font-size: 13px; padding: 3px 10px; }
+  .zone-check { width: 36px; height: 36px; font-size: 20px; border-width: 3px; }
+  .chosen-strip .label { font-size: 15px; }
+  .chosen-strip .chip { font-size: 15px; padding: 6px 12px; }
+
+  /* 6단계 매니저 전달 */
+  .sent-banner { gap: 12px; padding: 14px 16px; margin-bottom: 12px; flex-wrap: wrap; }
+  .sent-banner .check { width: 48px; height: 48px; font-size: 26px; }
+  .sent-banner h1 { font-size: 19px; }
+  .sent-banner p { font-size: 14px; }
+  .wait-no { padding: 8px 18px; border-width: 3px; border-radius: 16px; }
+  .wait-no-label { font-size: 13px; }
+  .wait-no-num { font-size: 18px; }
+  .wait-no-num b { font-size: 36px; }
+  .info-grid { grid-template-columns: 1fr; gap: 12px; }
+  .info-head h2 { font-size: 20px; }
+  .info-head .zone-icon { width: 52px; height: 52px; font-size: 26px; }
+  .info-card p { font-size: 15px; }
+  .product-title { font-size: 14px; }
+  .product-list span { font-size: 14px; padding: 5px 10px; }
+
+  /* 7단계 리모컨 */
+  .remote-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
+  .remote-stage { padding: 6px; }
+  .remote-stage svg { max-height: 220px; }
+  .remote-legend { grid-template-columns: 1fr; gap: 8px; }
+  .legend-item { padding: 8px 10px; gap: 10px; }
+  .legend-num { width: 34px; height: 34px; font-size: 16px; }
+  .legend-icon { font-size: 24px; }
+  .legend-text b { font-size: 16px; }
+  .legend-text span { font-size: 13px; }
+  .help-banner { font-size: 15px; padding: 12px 14px; margin-bottom: 10px; }
+
+  /* 8단계 결과 리포트 */
+  .report-title { font-size: 18px; }
+  .measure-grid { grid-template-columns: 1fr; gap: 10px; }
+  .measure-value { font-size: 24px; }
+  .measure-desc { font-size: 14px; }
+  .report-body { grid-template-columns: 1fr; padding: 12px 14px 14px; gap: 10px; }
+  .tip-box { font-size: 15px; padding: 10px 12px; }
+  details.report-item summary { font-size: 16px; padding: 10px 12px; }
+
+  /* 안내창 · QR · 토스트 */
+  .modal { padding: 22px 18px 20px; border-radius: 22px; }
+  .modal h1 { font-size: 22px; }
+  .modal p { font-size: 15px; }
+  .modal-bell { width: 72px; height: 72px; font-size: 36px; margin-bottom: 12px; }
+  .order-ticket { padding: 12px 14px; margin-top: 14px; gap: 6px; }
+  .ticket-row { font-size: 15px; }
+  .ticket-row b { font-size: 16px; }
+  .modal-actions { margin-top: 16px; gap: 10px; }
+  .modal-actions .btn { flex: 1 1 45%; font-size: 16px; min-height: 50px; }
+  .qr-modal { width: 92vw; }
+  .qr-modal h1 { font-size: 22px; }
+  .qr-box { width: 200px; height: 200px; margin-top: 12px; padding: 10px; }
+  .qr-meta { font-size: 15px; }
+  .qr-meta b { font-size: 18px; }
+  #toast { font-size: 15px; padding: 12px 18px; bottom: 24px; max-width: 92vw; }
+  .footer-left { flex: 1 1 100%; flex-wrap: wrap; gap: 8px; }
+  .footer-left .btn { flex: 1; }
+  .footer-left .sub { flex: 1 1 100%; font-size: 12px; }
+}
