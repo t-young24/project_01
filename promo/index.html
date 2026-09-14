@@ -270,17 +270,26 @@ function showScene(id) { document.querySelectorAll('.scene').forEach(el => el.cl
 let voice = null;
 function pickVoice() { const v = speechSynthesis.getVoices(); voice = v.find(x => x.lang === 'ko-KR') || v.find(x => x.lang && x.lang.startsWith('ko')) || null; }
 if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function narrate(text) {
-  if (!$('optVoice').checked || !('speechSynthesis' in window)) return Promise.resolve();   // 음성 없으면 장면 최소 길이(min)로 진행
+/* narr 는 문자열 또는 [문장, 문장, ...] — 배열이면 문장 사이에 잠깐 쉬어 끝 단어가 뭉개지지 않게 */
+function speakOne(text, rate) {
   return new Promise(res => {
-    speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR'; u.rate = 0.95; u.pitch = 1; if (voice) u.voice = voice;
+    u.lang = 'ko-KR'; u.rate = rate || 0.95; u.pitch = 1; if (voice) u.voice = voice;
     let done = false; const fin = () => { if (!done) { done = true; res(); } };
     u.onend = fin; u.onerror = fin;
     setTimeout(fin, Math.max(4000, text.length * 200));     // 음성이 끊겨도 영상은 진행
     speechSynthesis.speak(u);
   });
+}
+async function narrate(narr) {
+  if (!$('optVoice').checked || !('speechSynthesis' in window)) return;   // 음성 없으면 장면 최소 길이(min)로 진행
+  speechSynthesis.cancel();
+  const parts = Array.isArray(narr) ? narr : [narr];
+  for (let i = 0; i < parts.length; i++) {
+    const item = typeof parts[i] === 'string' ? { text: parts[i] } : parts[i];
+    await speakOne(item.text, item.rate);
+    if (i < parts.length - 1) await wait(item.pause || 450);
+  }
 }
 
 /* ---------- 카운트업 ---------- */
@@ -453,7 +462,7 @@ const SCENES = [
   },
   { /* 7. 클로징 */
     min: 6500, sub: '',
-    narr: '묻지 않아도 이미 알고 있는 응대 세라젬 웰라운지 셀프 문진입니다.',
+    narr: [{ text: '묻지 않아도, 이미 알고 있는 응대.', rate: 0.88, pause: 700 }, '세라젬 웰라운지 셀프 문진입니다.'],   // 슬로건은 천천히 · "응대" 뒤에 쉼
     async run(t) {
       showScene('sc7'); place(devCust, POS.hidden); place(devMgr, POS.mgrHidden);
       const els = document.querySelectorAll('#sc7 .rise'); els.forEach(e => e.classList.remove('on'));
