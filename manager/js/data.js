@@ -7,7 +7,7 @@
 
 /* 체험존 정보 (고객용 config.js 와 동일하게 유지) */
 const ZONES = {
-  spine:  { name: '척추존', icon: '🦴', color: '#e4eef9', products: ['마스터 V11', '마스터 V9', '마스터 V7'] },
+  spine:  { name: '척추존', icon: '🦴', color: '#fbe6e7', products: ['마스터 V11', '마스터 V9', '마스터 V7'] },
   rest:   { name: '휴식존', icon: '💺', color: '#efe8dc', products: ['파우제 M8', '파우제 M6', '파우제 M4'] },
   circ:   { name: '순환존', icon: '🦵', color: '#e3f4ea', products: ['셀루피아 레그', '웰카프 다리 마사지기', '발 온열 마사지기'] },
   beauty: { name: '뷰티존', icon: '✨', color: '#fbf1d4', products: ['셀루피아 페이스', 'LED 뷰티 마스크', '두피 케어기'] },

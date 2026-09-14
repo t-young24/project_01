@@ -10,9 +10,9 @@
   --bg: #f7f3ec;          /* 베이지 베이스 */
   --bg-card: #ffffff;
   --bg-soft: #efe8dc;
-  --blue: #2f6db5;        /* 딥블루 포인트 */
-  --blue-dark: #235391;
-  --blue-light: #e4eef9;
+  --blue: #d71920;        /* 포인트 색 = 세라젬 CI 레드 (변수 이름은 기존 코드 호환을 위해 유지) */
+  --blue-dark: #a8121a;
+  --blue-light: #fbe6e7;
   --text: #22303f;
   --text-sub: #5b6875;
   --line: #d9d0c2;
@@ -20,8 +20,8 @@
   --green-bg: #e3f4ea;
   --yellow: #d9a520;
   --yellow-bg: #fbf1d4;
-  --red: #d64545;
-  --red-bg: #fbe3e3;
+  --red: #e8590c;         /* 위험 · 3단계 심함 — 포인트 레드와 구분되게 진한 주황 */
+  --red-bg: #fde8dc;
   --radius: 24px;
   --shadow: 0 6px 24px rgba(40, 50, 70, 0.08);
   --ease: 0.55s cubic-bezier(.22,.61,.36,1);
@@ -83,8 +83,8 @@ header {
   transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s ease;
 }
 .btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 8px 20px rgba(47,109,181,0.28); }
-.btn-primary:disabled { background: #b8c4d3; box-shadow: none; cursor: default; }
+.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 8px 20px rgba(215,25,32,0.28); }
+.btn-primary:disabled { background: #cfc6bb; box-shadow: none; cursor: default; }
 .btn-secondary { background: #fff; color: var(--blue-dark); border: 3px solid var(--blue); }
 .btn-ghost { background: var(--bg-soft); color: var(--text); }
 .btn-back {
@@ -380,14 +380,14 @@ h2 { font-size: 32px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.5px;
   width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 20px;
   font: inherit; font-size: 26px; font-weight: 800; min-height: 78px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 14px;
-  box-shadow: 0 8px 20px rgba(47,109,181,0.28); margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(215,25,32,0.28); margin-bottom: 20px;
 }
 .help-banner:active { transform: scale(0.99); }
 .remote-layout { flex: 1; display: grid; grid-template-columns: 380px 1fr; gap: 28px; min-height: 0; }
 .remote-stage { display: flex; align-items: center; justify-content: center; padding: 16px; }
 .remote-stage svg { height: 100%; max-height: 520px; }
 .rbtn { transition: filter 0.3s ease; }
-.rbtn.glow { filter: drop-shadow(0 0 14px rgba(47,109,181,0.9)); }
+.rbtn.glow { filter: drop-shadow(0 0 14px rgba(215,25,32,0.9)); }
 .remote-legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; align-content: start; overflow-y: auto; min-height: 0; }
 .legend-item {
   background: var(--bg-card); border-radius: 20px; box-shadow: var(--shadow);

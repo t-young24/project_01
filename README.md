@@ -305,6 +305,6 @@ GitHub Pages 처럼 서버가 없는 곳에 배포해도 동작하도록, 두 �
 - 순수 HTML / CSS / JavaScript. 외부 라이브러리는 고객 ↔ 매니저 연동용 Firebase SDK(CDN, compat 빌드)만 사용
 - 인체모형 · 리모컨 · QR 패턴 모두 SVG로 직접 구현
 - 음성 안내: Web Speech API `SpeechSynthesis` (ko-KR, 속도 0.88)
-- 디자인 토큰: 베이지 배경 `#f7f3ec`, 딥블루 포인트 `#2f6db5`, 본문 22px, 버튼 최소 72px (주요 버튼 96px)
+- 디자인 토큰: 베이지 배경 `#f7f3ec`, 포인트 색 = 세라젬 CI 레드 `#d71920` (CSS 변수 이름은 호환을 위해 `--blue` 유지), 위험/심함은 구분을 위해 주황 `#e8590c`, 본문 22px, 버튼 최소 72px (주요 버튼 96px)
 - 화면 전환: 0.55초 페이드 + 슬라이드
 - 로컬 서버: Python 내장 `http.server` (별도 설치 불필요, Python만 있으면 됨)

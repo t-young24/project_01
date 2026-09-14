@@ -13,7 +13,7 @@
 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-  :root { --bg: #f7f3ec; --soft: #efe8dc; --blue: #2f6db5; --blue-dark: #235391; --blue-light: #e4eef9; --gold: #d9a520; --text: #22303f; --sub: #5b6875; --red: #e5484d; --green: #3aa76d; --ink: #0d1117; }
+  :root { --bg: #f7f3ec; --soft: #efe8dc; --blue: #d71920; --blue-dark: #a8121a; --blue-light: #fbe6e7;   /* 포인트 = 세라젬 CI 레드 */ --gold: #d9a520; --text: #22303f; --sub: #5b6875; --red: #e5484d; --green: #3aa76d; --ink: #0d1117; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #07090c; overflow: hidden; font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
   #wrap { position: absolute; inset: 0; display: grid; place-items: center; }
@@ -56,7 +56,7 @@
   #sc1 .dots { position: absolute; inset: 0; overflow: hidden; }
   #sc1 .dots i { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.35); animation: riseUp 9s linear infinite; }
   @keyframes riseUp { 0% { transform: translateY(740px) scale(.6); opacity: 0; } 15% { opacity: .8; } 100% { transform: translateY(-40px) scale(1.2); opacity: 0; } }
-  #sc1 .kicker { color: #8fb4e6; } #sc1 .kicker::before { background: #8fb4e6; }
+  #sc1 .kicker { color: #ff9a9e; } #sc1 .kicker::before { background: #ff9a9e; }
   #sc1 .left { position: relative; }
   #sc1 .again { display: inline-flex; align-items: center; gap: 8px; margin-left: 18px; font-size: 19px; font-weight: 700; color: #ff8a8a; background: rgba(229,72,77,.14); border: 1.5px solid rgba(229,72,77,.45); padding: 6px 16px; border-radius: 999px; opacity: 0; transition: opacity .4s; vertical-align: middle; }
   #sc1 .again.on { opacity: 1; animation: pulse 1.3s infinite; }
@@ -64,7 +64,7 @@
   #sc1 .qs { margin-top: 26px; display: flex; flex-direction: column; gap: 18px; }
   #sc1 .q { font-size: 42px; font-weight: 600; color: #dfe7f0; opacity: 0; transform: translateY(10px); transition: opacity .5s, transform .5s, color .6s; min-height: 54px; letter-spacing: -.5px; }
   #sc1 .q.on { opacity: 1; transform: none; }
-  #sc1 .q::after { content: '|'; color: #8fb4e6; animation: blink 1s infinite; margin-left: 4px; }
+  #sc1 .q::after { content: '|'; color: #ff9a9e; animation: blink 1s infinite; margin-left: 4px; }
   #sc1 .q.done::after { content: ''; }
   #sc1 .q.dim { color: #4a5563; }
   @keyframes blink { 50% { opacity: 0; } }
@@ -101,7 +101,7 @@
   #sc2 .flow { display: flex; align-items: center; gap: 16px; margin-top: 34px; }
   #sc2 .node { background: rgba(255,255,255,.85); backdrop-filter: blur(8px); border: 1px solid rgba(34,48,63,.08); border-radius: 22px; padding: 18px 26px; box-shadow: 0 14px 34px rgba(34,48,63,.10); display: flex; align-items: center; gap: 14px; font-size: 24px; font-weight: 700; color: var(--text); opacity: 0; transform: translateY(22px) scale(.96); transition: opacity .55s, transform .55s cubic-bezier(.2,.8,.2,1); letter-spacing: -.3px; }
   #sc2 .node .ic { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; font-size: 28px; background: var(--blue-light); }
-  #sc2 .node.mid { background: linear-gradient(145deg, #3d7fcb, #235391); color: #fff; border-color: transparent; } #sc2 .node.mid .ic { background: rgba(255,255,255,.18); }
+  #sc2 .node.mid { background: linear-gradient(145deg, #ef3b3f, #a8121a); color: #fff; border-color: transparent; } #sc2 .node.mid .ic { background: rgba(255,255,255,.18); }
   #sc2 .node.on { opacity: 1; transform: none; }
   #sc2 .arrow { position: relative; width: 84px; height: 24px; opacity: 0; transition: opacity .4s; }
   #sc2 .arrow.on { opacity: 1; }
@@ -137,12 +137,12 @@
   #sub b { color: #ffd166; font-weight: 700; }
 
   /* ---------- 터치 포인터 · 하이라이트 · 말풍선 · 전달선 ---------- */
-  #ripple { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; border: 4px solid var(--blue); background: rgba(47,109,181,.22); z-index: 15; opacity: 0; pointer-events: none; }
+  #ripple { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; border: 4px solid var(--blue); background: rgba(215,25,32,.22); z-index: 15; opacity: 0; pointer-events: none; }
   #ripple.go { animation: rip .8s ease-out; }
   @keyframes rip { 0% { opacity: 1; transform: scale(.35); } 100% { opacity: 0; transform: scale(1.9); } }
-  #finger { position: absolute; z-index: 16; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(47,109,181,.28); border: 2px solid rgba(255,255,255,.9); box-shadow: 0 6px 18px rgba(47,109,181,.45), inset 0 0 0 6px rgba(47,109,181,.35); opacity: 0; transition: left .55s cubic-bezier(.2,.8,.2,1), top .55s cubic-bezier(.2,.8,.2,1), opacity .3s, transform .15s; pointer-events: none; }
+  #finger { position: absolute; z-index: 16; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(215,25,32,.28); border: 2px solid rgba(255,255,255,.9); box-shadow: 0 6px 18px rgba(215,25,32,.45), inset 0 0 0 6px rgba(215,25,32,.35); opacity: 0; transition: left .55s cubic-bezier(.2,.8,.2,1), top .55s cubic-bezier(.2,.8,.2,1), opacity .3s, transform .15s; pointer-events: none; }
   #finger.on { opacity: 1; } #finger.press { transform: scale(.78); }
-  #hl { position: absolute; z-index: 14; border: 3px solid var(--blue); border-radius: 18px; box-shadow: 0 0 0 4000px rgba(13,17,23,.42), 0 0 0 6px rgba(47,109,181,.25); opacity: 0; transition: left .55s cubic-bezier(.2,.8,.2,1), top .55s cubic-bezier(.2,.8,.2,1), width .55s, height .55s, opacity .4s; pointer-events: none; }
+  #hl { position: absolute; z-index: 14; border: 3px solid var(--blue); border-radius: 18px; box-shadow: 0 0 0 4000px rgba(13,17,23,.42), 0 0 0 6px rgba(215,25,32,.25); opacity: 0; transition: left .55s cubic-bezier(.2,.8,.2,1), top .55s cubic-bezier(.2,.8,.2,1), width .55s, height .55s, opacity .4s; pointer-events: none; }
   #hl.on { opacity: 1; }
   .callout { position: absolute; z-index: 17; background: #fff; color: var(--text); font-size: 22px; font-weight: 700; padding: 12px 20px 12px 16px; border-radius: 16px; box-shadow: 0 16px 40px rgba(34,48,63,.22); display: flex; align-items: center; gap: 12px; white-space: nowrap; opacity: 0; transform: translateY(10px) scale(.96); transition: opacity .4s, transform .5s cubic-bezier(.2,.8,.2,1); pointer-events: none; letter-spacing: -.3px; }
   .callout .n { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 17px; font-weight: 800; display: grid; place-items: center; flex: none; }
@@ -152,24 +152,24 @@
   .callout.on { opacity: 1; transform: none; }
   #link { position: absolute; inset: 0; z-index: 15; pointer-events: none; opacity: 0; transition: opacity .4s; }
   #link.on { opacity: 1; }
-  #link path.glow { stroke: rgba(47,109,181,.35); stroke-width: 14; fill: none; filter: blur(6px); }
+  #link path.glow { stroke: rgba(215,25,32,.35); stroke-width: 14; fill: none; filter: blur(6px); }
   #link path.line { stroke: var(--blue); stroke-width: 4; fill: none; stroke-dasharray: 14 12; animation: dash 1s linear infinite; }
   @keyframes dash { to { stroke-dashoffset: -26; } }
   #link circle { fill: #fff; stroke: var(--blue); stroke-width: 4; }
-  #linkLbl { position: absolute; left: 50%; top: 42px; transform: translateX(-50%); z-index: 16; background: linear-gradient(145deg, #3d7fcb, #235391); color: #fff; font-weight: 700; font-size: 22px; padding: 10px 22px; border-radius: 999px; box-shadow: 0 12px 30px rgba(47,109,181,.35); display: flex; align-items: center; gap: 10px; white-space: nowrap; opacity: 0; transition: opacity .4s; pointer-events: none; }
+  #linkLbl { position: absolute; left: 50%; top: 42px; transform: translateX(-50%); z-index: 16; background: linear-gradient(145deg, #ef3b3f, #a8121a); color: #fff; font-weight: 700; font-size: 22px; padding: 10px 22px; border-radius: 999px; box-shadow: 0 12px 30px rgba(215,25,32,.35); display: flex; align-items: center; gap: 10px; white-space: nowrap; opacity: 0; transition: opacity .4s; pointer-events: none; }
   #linkLbl.on { opacity: 1; }
   #linkLbl i { width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px #4ade80; animation: blink .9s infinite; }
 
   /* ---------- 시작 화면 · 진행 바 ---------- */
   #gate { position: absolute; inset: 0; z-index: 50; background: radial-gradient(800px 500px at 50% 30%, #182131 0%, var(--ink) 70%); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
-  #gate .kicker { color: #8fb4e6; } #gate .kicker::before { background: #8fb4e6; }
+  #gate .kicker { color: #ff9a9e; } #gate .kicker::before { background: #ff9a9e; }
   #gate h2 { margin: 6px 0 0; font-size: 44px; letter-spacing: -1.5px; font-weight: 800; }
   #gate p { margin: 0 0 8px; color: #aab7c6; font-size: 19px; }
   #gate label { font-size: 17px; color: #dfe6ee; display: flex; gap: 10px; align-items: center; }
   #gate label[hidden] { display: none; }
   #gate select, #gate #btnTest { font: inherit; font-size: 15px; background: #1b2330; color: #dfe6ee; border: 1px solid #34404f; border-radius: 8px; padding: 5px 10px; max-width: 360px; }
   #gate #btnTest { cursor: pointer; }
-  #gate button { font: inherit; font-size: 26px; font-weight: 800; padding: 18px 56px; border-radius: 999px; border: 0; background: linear-gradient(145deg, #3d7fcb, #235391); color: #fff; cursor: pointer; margin-top: 12px; box-shadow: 0 14px 40px rgba(47,109,181,.45); letter-spacing: -.3px; }
+  #gate button { font: inherit; font-size: 26px; font-weight: 800; padding: 18px 56px; border-radius: 999px; border: 0; background: linear-gradient(145deg, #ef3b3f, #a8121a); color: #fff; cursor: pointer; margin-top: 12px; box-shadow: 0 14px 40px rgba(215,25,32,.45); letter-spacing: -.3px; }
   #gate .keys { margin-top: 14px; font-size: 14.5px; color: #7f8b98; }
   #gate kbd { background: #263040; padding: 2px 8px; border-radius: 6px; font-family: inherit; color: #cfd8e3; }
   #gate.hide { display: none; }
