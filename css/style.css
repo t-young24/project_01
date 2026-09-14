@@ -5,6 +5,8 @@
          → 5 리모컨 안내 → 6 결과 리포트(간단 + 자세히)
    ============================================================ */
 :root {
+  --brand-red: #d71920;        /* 세라젬 로고 레드 (CI) */
+  --brand-red-dark: #a8121a;
   --bg: #f7f3ec;          /* 베이지 베이스 */
   --bg-card: #ffffff;
   --bg-soft: #efe8dc;
@@ -57,7 +59,7 @@ header {
   font-weight: 800; font-size: 24px; color: var(--blue-dark); letter-spacing: -0.5px;
 }
 .brand .logo {
-  width: 40px; height: 40px; border-radius: 12px; background: var(--blue);
+  width: 40px; height: 40px; border-radius: 12px; background: var(--brand-red);   /* 세라젬 CI 레드 */
   display: grid; place-items: center; color: #fff; font-size: 20px;
 }
 .steps { display: flex; align-items: center; gap: 8px; }
