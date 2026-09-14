@@ -150,7 +150,7 @@
   .callout.left::after { right: -7px; top: calc(50% - 8px); } .callout.right::after { left: -7px; top: calc(50% - 8px); }
   .callout.top::after { bottom: -7px; left: calc(50% - 8px); } .callout.bottom::after { top: -7px; left: calc(50% - 8px); }
   .callout.on { opacity: 1; transform: none; }
-  #link { position: absolute; inset: 0; z-index: 15; pointer-events: none; opacity: 0; transition: opacity .4s; }
+  #link { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; opacity: 0; transition: opacity .4s; }
   #link.on { opacity: 1; }
   #link path.glow { stroke: rgba(215,25,32,.35); stroke-width: 14; fill: none; filter: blur(6px); }
   #link path.line { stroke: var(--blue); stroke-width: 4; fill: none; stroke-dasharray: 14 12; animation: dash 1s linear infinite; }
@@ -159,6 +159,39 @@
   #linkLbl { position: absolute; left: 50%; top: 42px; transform: translateX(-50%); z-index: 16; background: linear-gradient(145deg, #ef3b3f, #a8121a); color: #fff; font-weight: 700; font-size: 22px; padding: 10px 22px; border-radius: 999px; box-shadow: 0 12px 30px rgba(215,25,32,.35); display: flex; align-items: center; gap: 10px; white-space: nowrap; opacity: 0; transition: opacity .4s; pointer-events: none; }
   #linkLbl.on { opacity: 1; }
   #linkLbl i { width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 10px #4ade80; animation: blink .9s infinite; }
+
+  /* ---------- 모바일(세로) 레이아웃 — 무대 720×1280, html[data-layout="mobile"] ---------- */
+  html[data-layout="mobile"] #sc1 { grid-template-columns: 1fr; padding: 0 52px; row-gap: 44px; align-content: center; }
+  html[data-layout="mobile"] #sc1 .q { font-size: 34px; min-height: 46px; }
+  html[data-layout="mobile"] #sc1 .qs { gap: 14px; }
+  html[data-layout="mobile"] #sc1 .watch { width: 180px; height: 180px; }
+  html[data-layout="mobile"] #sc1 .num { font-size: 100px; }
+  html[data-layout="mobile"] #sc1 .cap { font-size: 19px; }
+  html[data-layout="mobile"] #sc2 { padding: 0 40px; gap: 12px; }
+  html[data-layout="mobile"] #sc2 h1 { font-size: 52px; text-align: center; line-height: 1.15; }
+  html[data-layout="mobile"] #sc2 p { font-size: 23px; text-align: center; }
+  html[data-layout="mobile"] #sc2 .ways { flex-direction: column; gap: 10px; margin-top: 18px; }
+  html[data-layout="mobile"] #sc2 .ways .lbl { margin: 0 0 4px; }
+  html[data-layout="mobile"] #sc2 .flow { flex-direction: column; gap: 6px; margin-top: 22px; }
+  html[data-layout="mobile"] #sc2 .arrow { transform: rotate(90deg); margin: 28px 0; }
+  html[data-layout="mobile"] #sc2 .node { font-size: 22px; padding: 14px 22px; }
+  html[data-layout="mobile"] #sc6 .panel { height: 660px; flex-direction: column; align-items: center; justify-content: flex-end; gap: 14px; padding-bottom: 120px; background: linear-gradient(180deg, rgba(247,243,236,0) 0%, rgba(247,243,236,.94) 18%, #f7f3ec 100%); }
+  html[data-layout="mobile"] .stat { width: 600px; padding: 16px 22px 14px 26px; }
+  html[data-layout="mobile"] .stat .v { font-size: 40px; }
+  html[data-layout="mobile"] #sc7 { padding: 0 40px; }
+  html[data-layout="mobile"] #sc7 h1 { font-size: 46px; text-align: center; line-height: 1.2; }
+  html[data-layout="mobile"] #sc7 p { font-size: 19px; text-align: center; }
+  html[data-layout="mobile"] #sub { font-size: 23px; white-space: normal; text-align: center; max-width: 92%; bottom: 44px; padding: 12px 24px 12px 20px; border-radius: 16px; }
+  html[data-layout="mobile"] .callout { font-size: 19px; padding: 10px 16px 10px 12px; }
+  html[data-layout="mobile"] .callout .n { width: 28px; height: 28px; font-size: 15px; }
+  html[data-layout="mobile"] #gate { padding: 0 36px; }
+  html[data-layout="mobile"] #gate h2 { font-size: 34px; text-align: center; }
+  html[data-layout="mobile"] #gate p { font-size: 17px; text-align: center; }
+  html[data-layout="mobile"] #gate label { font-size: 16px; }
+  html[data-layout="mobile"] #gate button { font-size: 24px; padding: 16px 48px; }
+  html[data-layout="mobile"] #gate .keys { text-align: center; line-height: 1.7; }
+  html[data-layout="mobile"] #scenebar { height: 6px; }
+  #layoutSwitch { color: #8fb4e6; text-decoration: underline; cursor: pointer; font-size: 14.5px; margin-top: 4px; }
 
   /* ---------- 시작 화면 · 진행 바 ---------- */
   #gate { position: absolute; inset: 0; z-index: 50; background: radial-gradient(800px 500px at 50% 30%, #182131 0%, var(--ink) 70%); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
@@ -246,7 +279,7 @@
   </section>
 
   <!-- 공통 오버레이 -->
-  <svg id="link" viewBox="0 0 1280 720"><path class="glow" id="linkGlow"/><path class="line" id="linkLine"/><circle id="linkA" r="9"/><circle id="linkB" r="9"/></svg>
+  <svg id="link"><path class="glow" id="linkGlow"/><path class="line" id="linkLine"/><circle id="linkA" r="9"/><circle id="linkB" r="9"/></svg>
   <div id="linkLbl"><i></i>실시간 전달 중</div>
   <div id="hl"></div>
   <div id="ripple"></div>
@@ -271,6 +304,7 @@
     <button id="btnStart">▶ 재생</button>
     <div class="keys"><kbd>Space</kbd> 시작 · <kbd>←</kbd><kbd>→</kbd> 장면 이동 · <kbd>R</kbd> 처음부터 · <kbd>F</kbd> 전체화면</div>
     <div class="keys" id="gateMsg"></div>
+    <div id="layoutSwitch"></div>
   </div>
 </div>
 </div>
@@ -290,8 +324,27 @@ const PROMO_CARD = {                                     // 장면 4에서 매�
   history: { date: '2026-08-02', zones: ['spine'], measured: null, summary: '척추존 30분 체험 · 가격 확인 후 상의해 보겠다고 함' },
 };
 
-/* 기기 프레임 위치 프리셋 (stage 1280×720 기준, 기기 원본 1280×800) */
-const POS = {
+/* ---------- 레이아웃: PC(가로 1280×720) / 모바일(세로 720×1280) ----------
+   세로 화면(휴대폰)이면 모바일, 아니면 PC. ?layout=mobile|pc 로 강제 가능 */
+const Q = new URLSearchParams(location.search);
+const MOBILE = Q.get('layout') ? Q.get('layout') === 'mobile' : innerHeight > innerWidth;
+const STAGE = MOBILE ? { w: 720, h: 1280 } : { w: 1280, h: 720 };
+document.documentElement.dataset.layout = MOBILE ? 'mobile' : 'pc';
+document.getElementById('stage').style.width = STAGE.w + 'px';
+document.getElementById('stage').style.height = STAGE.h + 'px';
+
+/* 기기 프레임 위치 프리셋 (기기 원본 1280×800) */
+const POS = MOBILE ? {
+  // 세로: 고객 화면 위 · 매니저 화면 아래로 쌓음
+  hidden:    { x: 21,  y: 1300, s: 0.53, o: 0 },
+  custFull:  { x: 21,  y: 150,  s: 0.53, o: 1 },
+  custSplit: { x: 40,  y: 130,  s: 0.50, o: 1 },
+  mgrSplit:  { x: 40,  y: 690,  s: 0.50, o: 1 },
+  mgrFull:   { x: 21,  y: 150,  s: 0.53, o: 1 },
+  custPip:   { x: 418, y: 1060, s: 0.22, o: 1 },
+  custPipBig:{ x: 104, y: 660,  s: 0.40, o: 1 },
+  mgrHidden: { x: 40,  y: 1300, s: 0.50, o: 0 },
+} : {
   hidden:    { x: 166, y: 780, s: 0.74, o: 0 },
   custFull:  { x: 166, y: 88,  s: 0.74, o: 1 },
   custSplit: { x: 10,  y: 160, s: 0.46, o: 1 },
@@ -348,6 +401,7 @@ function unhighlight() { $('hl').classList.remove('on'); }
 /* 말풍선: 대상 요소 옆에 번호 + 설명. side = left | right | top | bottom */
 function callout(dev, ifr, sel, n, text, side = 'right', offset = 26) {
   const r = rectOf(dev, ifr, sel); if (!r) return;
+  if (MOBILE && (side === 'left' || side === 'right')) side = r.y > STAGE.h / 2 ? 'top' : 'bottom';   // 세로 화면은 좌우 여백이 없어 위/아래로
   const el = document.createElement('div'); el.className = 'callout ' + side;
   el.innerHTML = (n ? `<span class="n">${n}</span>` : '') + text;
   $('callouts').appendChild(el);
@@ -357,7 +411,7 @@ function callout(dev, ifr, sel, n, text, side = 'right', offset = 26) {
   else if (side === 'left') { x = r.x - offset - w; y = r.y + r.h / 2 - h / 2; }
   else if (side === 'top') { x = r.x + r.w / 2 - w / 2; y = r.y - offset - h; }
   else { x = r.x + r.w / 2 - w / 2; y = r.y + r.h + offset; }
-  x = Math.max(12, Math.min(1280 - w - 12, x)); y = Math.max(12, Math.min(720 - h - 12, y));
+  x = Math.max(12, Math.min(STAGE.w - w - 12, x)); y = Math.max(12, Math.min(STAGE.h - h - 12, y));
   el.style.left = x + 'px'; el.style.top = y + 'px';
   requestAnimationFrame(() => el.classList.add('on'));
   return el;
@@ -365,17 +419,26 @@ function callout(dev, ifr, sel, n, text, side = 'right', offset = 26) {
 function clearCallouts() { document.querySelectorAll('.callout').forEach(el => { el.classList.remove('on'); setTimeout(() => el.remove(), 450); }); }
 /* 두 기기 사이 연결선 (장면 4) */
 function showLink(devA, devB) {
-  // 두 기기 위쪽 가운데를 잇는 큰 아치 (기기 라벨은 잠시 숨김)
-  const ax = +devA.dataset.x + 640 * +devA.dataset.s, ay = +devA.dataset.y - 10;
-  const bx = +devB.dataset.x + 640 * +devB.dataset.s, by = +devB.dataset.y - 10;
-  const d = `M ${ax} ${ay} C ${ax + 120} 30, ${bx - 120} 30, ${bx} ${by}`;
+  let ax, ay, bx, by, d;
+  if (MOBILE) {
+    // 세로: 위 기기 아래쪽 → 아래 기기 위쪽을 잇는 S자 선, 라벨은 그 사이
+    ax = +devA.dataset.x + 640 * +devA.dataset.s; ay = +devA.dataset.y + 800 * +devA.dataset.s + 12;
+    bx = +devB.dataset.x + 640 * +devB.dataset.s; by = +devB.dataset.y - 12;
+    d = `M ${ax} ${ay} C ${ax + 160} ${ay + 40}, ${bx + 160} ${by - 40}, ${bx} ${by}`;
+    $('linkLbl').style.top = ((ay + by) / 2 - 24) + 'px';
+  } else {
+    // 가로: 두 기기 위쪽 가운데를 잇는 큰 아치 (기기 라벨은 잠시 숨김)
+    ax = +devA.dataset.x + 640 * +devA.dataset.s; ay = +devA.dataset.y - 10;
+    bx = +devB.dataset.x + 640 * +devB.dataset.s; by = +devB.dataset.y - 10;
+    d = `M ${ax} ${ay} C ${ax + 120} 30, ${bx - 120} 30, ${bx} ${by}`;
+  }
   $('linkGlow').setAttribute('d', d); $('linkLine').setAttribute('d', d);
   $('linkA').setAttribute('cx', ax); $('linkA').setAttribute('cy', ay); $('linkB').setAttribute('cx', bx); $('linkB').setAttribute('cy', by);
   devA.classList.remove('show-tag'); devB.classList.remove('show-tag');
   $('link').classList.add('on'); $('linkLbl').classList.add('on');
 }
 function hideLink() { $('link').classList.remove('on'); $('linkLbl').classList.remove('on'); }
-function subtitle(html) { const s = $('sub'); if (!html) { s.classList.remove('on'); return; } s.innerHTML = html; s.classList.add('on'); }
+function subtitle(html) { const s = $('sub'); if (!html) { s.classList.remove('on'); return; } s.innerHTML = '<span>' + html + '</span>'; s.classList.add('on'); }   // span 으로 감싸야 flex 안에서 줄바꿈이 자연스러움
 function showScene(id) { document.querySelectorAll('.scene').forEach(el => el.classList.toggle('on', el.id === id)); }
 
 /* ---------- 나레이션 (SpeechSynthesis ko-KR) ----------
@@ -751,11 +814,13 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- 창 크기에 맞춰 stage 축소 ---------- */
-function fit() { const s = Math.min(innerWidth / 1280, innerHeight / 720); $('stage').style.transform = `scale(${s})`; }
+function fit() { const s = Math.min(innerWidth / STAGE.w, innerHeight / STAGE.h); $('stage').style.transform = `scale(${s})`; }
+// 시작 화면의 레이아웃 전환 링크
+$('layoutSwitch').textContent = MOBILE ? '🖥 PC(가로) 버전으로 보기' : '📱 모바일(세로) 버전으로 보기';
+$('layoutSwitch').onclick = () => { Q.set('layout', MOBILE ? 'pc' : 'mobile'); location.search = Q.toString(); };
 addEventListener('resize', fit); fit();
 
-/* ---------- 주소 옵션: ?autostart=1 (바로 재생) · ?voice=0 · ?bgm=0 · ?live=1 ---------- */
-const Q = new URLSearchParams(location.search);
+/* ---------- 주소 옵션: ?autostart=1 (바로 재생) · ?voice=0 · ?bgm=0 · ?live=1 · ?layout=mobile|pc ---------- */
 if (Q.get('voice') === '0') $('optVoice').checked = false;
 if (Q.get('bgm') === '0') $('optBgm').checked = false;
 if (Q.get('live') === '1') $('optLive').checked = true;
